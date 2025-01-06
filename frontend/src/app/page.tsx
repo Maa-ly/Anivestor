@@ -1,19 +1,7 @@
-import Image from "next/image";
 
 export default function Home() {
    return (
-      <div>
-
-         {/* navbar */}
-         <div className="w-full h-[3rem] bg-transparent border-b-gray-400 border-b-[1px] flex justify-between items-center px-5">
-            <div>Anivestor</div>
-            <div className="flex gap-2">
-               <div>Farmers</div>
-               <div>Investors</div>
-               <div>Marketplace</div>
-            </div>
-            <div>Connect</div>
-         </div>
+      <main className="bg-[#0B0A09] text-white">
 
          {/* hero section */}
          <section className="w-full h-[90vh] lg:h-[80vh] bg-black border-b-solid border-b-[1px] border-b-white flex gap-0 p-10 flex-col lg:flex-row">
@@ -142,7 +130,7 @@ export default function Home() {
          {/* Our clients */}
          <section className="w-full h-[60vh] flex flex-col items-center px-10">
             <h2 className="text-center text-4xl w-[50%]">Our Clients are world's Best and Well Known Companies</h2>
-            <div className="grid grid-cols-4 col-auto row-auto mt-20">
+            <div className="grid grid-cols-4 col-auto row-auto mt-20 text-black">
                <div className="w-[12rem] h-[10rem] bg-white flex justify-center items-center">Solana</div>
                <div className="w-[12rem] h-[10rem] bg-white flex justify-center items-center">Solana</div>
                <div className="w-[12rem] h-[10rem] bg-white flex justify-center items-center">Solana</div>
@@ -154,7 +142,7 @@ export default function Home() {
             </div>
          </section>
 
-      </div>
+      </main>
 
    );
 }
