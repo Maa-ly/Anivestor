@@ -9,7 +9,7 @@ export default function Home() {
                <h2 className="text-4xl lg:text-[2.5rem] w-1/2 font-extrabold break-words">Lorem Herem Lorem Oolor Done Gone Fill Heal And</h2>
                <p className="text-[12px] py-5">Lorem ipsum dolor sit amet consectetur adipisicing elit. Magnam at dolore repellat minima asperiores maiores itaque quod ullam sint fuga temporibus quisquam eligendi, necessitatibus, magni distinctio, eum eveniet eius ipsam.</p>
                <div className="flex gap-2">
-                  <button className="p-1 px-5 bg-blue-400 rounded-full">hello</button>
+                  <button className="p-1 px-5 bg-blue-400 rounded-full">Register as farmer</button>
                   <button className="p-1 px-5 bg-blue-00 rounded-full border-blue-400 border-solid border-[1px]">Call Us</button>
                </div>
             </div>
@@ -129,7 +129,7 @@ export default function Home() {
 
          {/* Our clients */}
          <section className="w-full h-[60vh] flex flex-col items-center px-10">
-            <h2 className="text-center text-4xl w-[50%]">Our Clients are world's Best and Well Known Companies</h2>
+            <h2 className="text-center text-4xl w-[50%]">Our Clients are worlds Best and Well Known Companies</h2>
             <div className="grid grid-cols-4 col-auto row-auto mt-20 text-black">
                <div className="w-[12rem] h-[10rem] bg-white flex justify-center items-center">Solana</div>
                <div className="w-[12rem] h-[10rem] bg-white flex justify-center items-center">Solana</div>

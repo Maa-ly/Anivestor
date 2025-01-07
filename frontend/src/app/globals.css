@@ -64,6 +64,10 @@ body {
    }
  }
  
+ .customgrid {
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+ }
 
 @layer base {
   * {
