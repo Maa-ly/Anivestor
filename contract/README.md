@@ -24,3 +24,19 @@
 
 **IExec App blackbox**
 **web3 email**
+
+
+### prompt
+
+
+### todo tonight
+- farmer part of marketplace
+- Interface - Imarket, Ifarmer
+
+## todo tomorrow
+- buyer/invester part of marketplace
+- interfaces left, vesting..investor
+- vesting 
+
+### Thursday
+### Oracle, Token interagrtion, IExec intergration 
