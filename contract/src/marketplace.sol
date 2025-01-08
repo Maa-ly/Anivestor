@@ -16,6 +16,8 @@ contract MarketPlace is ERC1155 {
 
     /////mapping/////////////
     //mapping(uint256 => Animal) public liveStock;
+    mapping(address => uint256);
+
 
     Animal[] public liveStock;/* */
 
@@ -27,6 +29,14 @@ contract MarketPlace is ERC1155 {
     event DeListed(uint256 indexed id, address farmer);
 
   //  bytes32 constant STRING_SIZE_SHOULD_BE = 32;
+ struct Investorr{
+     // uint256 totalshares
+     //uint256 livestockId;
+     //uint256 timetracking
+     //uint256 lockingperiod
+     
+ }
+
 
     struct Animal {
         address farmer;
@@ -165,7 +175,37 @@ contract MarketPlace is ERC1155 {
     }
 
     function spotListing() external {}
-    function invest() external {}
+
+ //buying shares
+ //payable funtion 
+    function invest(uint256 _livestockId, uint256 sharesToInvest) external payable {
+        Animal memory animal = liveStock[_livestockId];
+
+        // checks if its in stock 
+        require(animal.listingState == State.IN_STOCK, "MarketPlace__Not_IN_STOCK");
+
+        // check if theres enough to invest
+        require(animal.avaliableShare >= sharesToInvest, "MarketPlace__Not_Enough_Shares_TO_Invest");
+        
+         uint256 totalPriceToInvest = sharesToInvest * animal.pricepershare;
+         require(msg.value == animal.pricepershare, "MarketPlace__Not_Enough_funds");
+
+         // remove the bough shares from the total
+
+         liveStock[_livestockId].avaliableShare -= sharesToInvest;
+
+         //add it to the investors thing 
+
+
+
+
+        
+        
+    }
+
+    //buys the whole listing 
     function purchaseListing() external {}
+ 
+    // after purchaisng you can transfer ownership ? right 
     function transferListOwnerShip() external {}
 }
