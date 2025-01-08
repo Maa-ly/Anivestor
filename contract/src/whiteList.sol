@@ -15,8 +15,8 @@ contract WhiteList {
         _;
     }
 
-    constructor() {
-        owner = msg.sender;
+    constructor(address _owner) {
+        owner = _owner;
     }
 
     function addToPublicWhiteList(address Add) external {

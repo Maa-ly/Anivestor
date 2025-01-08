@@ -3,12 +3,21 @@ pragma solidity 0.8.26;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract FarmerRegistration {
+contract FarmerRegistration is Ownable {
+  address ownerr;
+
+  
+  
+
     struct Farmer {
         address farmerAddress;
         string name;
         string documentHash;
         bool verified;
+    }
+
+    constructor() Ownable(msg.sender){
+        ownerr = msg.sender;
     }
 
     mapping(address => Farmer) public farmer;

@@ -2,11 +2,12 @@
 
 pragma solidity 0.8.26;
 
-import {WhiteList} from "Anivestor/contract/src/whiteList.sol";
-import {FarmerRegistration} from "Anivestor/contract/src/FarmerRegistration.sol";
+import {WhiteList} from "./whiteList.sol";
+import {FarmerRegistration} from "./FarmerRegistration.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract WhiteListDeployer {
-    address owner;
+contract WhiteListDeployer is Ownable {
+    address ownerr;
     WhiteList public list;
     FarmerRegistration public farmer;
 
@@ -14,16 +15,17 @@ contract WhiteListDeployer {
 
     modifier isverified() {
         require(farmer.isVerified(msg.sender), "WhiteListDeployer___Farmer_not_verified");
+        _;
     }
 
-    constructor(address _farmerRegistration) {
-        owner = msg.sender;
+    constructor(address _farmerRegistration) Ownable(msg.sender) {
+        ownerr = msg.sender;
         farmer = FarmerRegistration(_farmerRegistration);
     }
 
     function deployWhiteList() external onlyOwner isverified {
         require(farmerToWhitelist[msg.sender] == address(0), "WhiteListDeployer___Farmer_Already_Has_Whitelist");
-        WhiteList list = new WhiteList(msg.sender); // Farmer becomes the owner of their WhiteList
+         list = new WhiteList(msg.sender); // Farmer becomes the owner of their WhiteList
         farmerToWhitelist[msg.sender] = address(list);
     }
 

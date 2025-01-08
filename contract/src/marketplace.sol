@@ -1,18 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {ERC1155} from "contract/lib/openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol";
+import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
+import {WhiteList} from "./whiteList.sol";
+import {FarmerRegistration} from "./FarmerRegistration.sol";
 
-import {FarmerRegistration} from "Anivestor/contract/src/FarmerRegistration.sol";
 
 contract MarketPlace is ERC1155 {
     ///////////State Viriables/////////////
     uint256 livestockId = 1; // everything is over.....0 nothing 0 id means nada
 
+    FarmerRegistration public farmer;
+
     /////mapping/////////////
-    mapping(uint256 => Animal) public liveStock;
+    //mapping(uint256 => Animal) public liveStock;
+
+    Animal[] public liveStock;/* */
 
     //////Event//////////////
     event AnimalRegistered(
@@ -21,7 +26,7 @@ contract MarketPlace is ERC1155 {
     event ListCreated(uint256 indexed id, address farmer, uint256 lockPeriod);
     event DeListed(uint256 indexed id, address farmer);
 
-    bytes32 constant STRING_SIZE_SHOULD_BE = 32;
+  //  bytes32 constant STRING_SIZE_SHOULD_BE = 32;
 
     struct Animal {
         address farmer;
@@ -31,7 +36,7 @@ contract MarketPlace is ERC1155 {
         uint256 profitPerDay;
         uint256 periodProfit;
         uint256 lockPeriod;
-        uint256 totalAmountSharesMinted; /*TotalSharessharesAvaliable */
+        uint256 totalAmountSharesMinted; /*TotalSharessharesAvaliable */  
         uint256 avaliableShare; /*TotalSharessharesAvaliable - avaliableShare*/
         uint256 listingTime;
         State listingState;
@@ -45,8 +50,8 @@ contract MarketPlace is ERC1155 {
 
     ///////Modifier////////////
 
-    modifier onlyLivestockOwner(uint256 livestockId) {
-        require(msg.sender == liveStock[livestockId].farmer, "MARKETPLACE___NOT_OWNER_OF_ID");
+    modifier onlyLivestockOwner(uint256 _livestockId) {
+        require(msg.sender == liveStock[_livestockId].farmer, "MARKETPLACE___NOT_OWNER_OF_ID");
         _;
     }
 
@@ -55,7 +60,7 @@ contract MarketPlace is ERC1155 {
         _;
     }
 
-    constructor(string URI) ERC1155(URI) {}
+    constructor(string memory URI) ERC1155(URI) {}
 
     /**
      * 1. tokenize the livestock
@@ -66,16 +71,16 @@ contract MarketPlace is ERC1155 {
      *    6. after done mint itll return an ID that will be special to that animal registration ...
      *    7. id shows ownership of the animal registered for the farmer
      */
-    function registerAnimal(string memory _animalName, string memory _breed, string memory _totalAmountSharesMinted)
+    function registerAnimal(string memory _animalName, string memory _breed, uint256 _totalAmountSharesMinted)
         external
         isverified
         returns (uint256)
     {
         //check the animal name is an acceptable string formal...otherwise if the famer input somewird and not stringish there will be siisue
-        require(
-            bytes32(animalName).lenght != 0 && bytes32(animalName).lenght <= STRING_SIZE_SHOULD_BE * 3,
-            "MarketPlace__Invalid_naming"
-        ); //32 * 3 = 96
+       // require(
+            //bytes32(_animalName).length != 0 && bytes32(_animalName).length <= STRING_SIZE_SHOULD_BE * 3,
+           // "MarketPlace__Invalid_naming"
+       // ); //32 * 3 = 96
         uint256 _livestockId = livestockId;
         liveStock[_livestockId] = Animal({
             farmer: msg.sender,
@@ -117,7 +122,7 @@ contract MarketPlace is ERC1155 {
             breed: animal.breed,
             pricepershare: _pricepershare,
             profitPerDay: _profitPerDay,
-            periodProfit: periodProfit,
+            periodProfit: _periodProfit,
             lockPeriod: _lockPeriod,
             totalAmountSharesMinted: animal.totalAmountSharesMinted, /*TotalSharessharesAvaliable */
             avaliableShare: animal.avaliableShare, /*TotalSharessharesAvaliable - avaliableShare*/
@@ -129,9 +134,35 @@ contract MarketPlace is ERC1155 {
     }
 
     //whenever a farmer delist there should be a fee .....investers get their money back...
-    function deList() external {}
-    function getListings() external {}
-    function getListingDetails() external {}
+    // edge cases 
+    //1. removes list but 1. this list has been spotted/purchased by investor?
+    // my solution will be to
+    // 1. check if listing is being invested--cureently
+    //2. refund the investors
+    //3. delisting fees
+    //4. we delist
+    function deList(uint256 _livestockId) external view onlyLivestockOwner(_livestockId) {
+        Animal storage animal = liveStock[_livestockId];
+        require(animal.listingState == State.IN_STOCK, "MarketPlace___Not_Listed");
+
+        if(animal.avaliableShare < animal.totalAmountSharesMinted) {
+            // refund the investor
+
+        }
+        
+
+    }
+
+    
+    function refundInvestor() external{}
+
+    function getListings() external view returns(Animal[] memory) {
+        return liveStock;
+    }
+
+    function getListingDetails(uint256 _livestockId) external view returns(Animal memory){
+        return liveStock[_livestockId];
+    }
 
     function spotListing() external {}
     function invest() external {}
