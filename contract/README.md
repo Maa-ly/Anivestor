@@ -42,8 +42,45 @@
 ### Oracle, Token interagrtion, IExec intergration 
 
 ### 8th january todo
-- add whitelist in the marketplace
-- collateral system
+- add whitelist in the marketplace --- done
+- collateral system ---
+    ` farmer locks in collateral
+    - gets loan
+    -pays back
+    -colateral gets unlocked
+
+    ```solidty
+    struct CollateralInfomation{
+        uint256 amount;
+        uint256 lockEndTime;
+        bool isLocked;
+        uint256 liveStockId;
+    }
+    function depositCollateralForListing(uint256 _liveSTockId) external payable isverified onlyLivestockOwner(_livestockId){
+        Animal storage animal = liveStock[_liveStockId];
+
+        uint256 lockEndTime = block.timestamp + animal.lockperiod;
+
+        //creates the collateral entry so meaning i need a struct ok
+
+    }
+    ```
 - interfaces 
 
 ### Oracle,  IExec intergration 
+
+## borrowing system
+- puts collateral
+    - collateral is lock untill lockperiodend and borrow amount is paid || borrow amount is paid
+    - repay borrowed amount
+- borrows against the collateral
+    - needs to be a borrow limit per day or not || just borrow enough for that particular listing
+    - how much collateral is locked in
+    -currently daily profit obligation
+        
+- Repays the borrowed amount
+
+### functions
+- function depositCollateral
+- function releaseCollateral
+- function repayBorrowedAmount
