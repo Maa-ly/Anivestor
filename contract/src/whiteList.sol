@@ -32,12 +32,20 @@ contract WhiteList {
         return true;
     }
 
-    function isWhiteList() external view returns (bool) {
-        require(
-            privateWhitelist[msg.sender] == true || publicWhitelist[msg.sender] == true,
-            "revert_not_in_public_or_private_whitelist"
-        );
-        return true;
+    function isPublicWhiteList(address Add) external view returns (bool) {
+        //require(
+        //  publicWhitelist[msg.sender] == true // || publicWhitelist[msg.sender] == true,
+        //"revert_not_in_public_whitelist"
+        // );
+        return publicWhitelist[Add];
+    }
+
+    function isPrivateWhiteList(address Add) external view returns (bool) {
+        //require(
+        //  privateWhitelist[msg.sender] == true // || publicWhitelist[msg.sender] == true,
+        // "revert_not_in_private_whitelist"
+        // );
+        return privateWhitelist[Add];
     }
 
     function addToPrivateWhitelist(address Add) external onlyFarmer {

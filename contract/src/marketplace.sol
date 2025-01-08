@@ -55,7 +55,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         uint256 avaliableShare; /*TotalSharessharesAvaliable - avaliableShare*/
         uint256 listingTime;
         State listingState;
-        WhiteListType whiteListType; 
+        WhiteListType whiteListType;
     }
 
     enum State {
@@ -120,7 +120,8 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
             totalAmountSharesMinted: _totalAmountSharesMinted, /*TotalSharessharesAvaliable */
             avaliableShare: _totalAmountSharesMinted, /*TotalSharessharesAvaliable - avaliableShare*/
             listingTime: 0,
-            listingState: State.UNLISTED
+            listingState: State.UNLISTED,
+            whiteListType: WhiteListType.PUBLIC
         });
         livestockId++;
         _mint(msg.sender, _livestockId, _totalAmountSharesMinted, "");
@@ -156,7 +157,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
             avaliableShare: animal.avaliableShare, /*TotalSharessharesAvaliable - avaliableShare*/
             listingTime: block.timestamp,
             listingState: State.IN_STOCK,
-            animal.whiteListType : _whiteListType;
+            whiteListType: _whiteListType
         });
 
         setApprovalForAll(address(this), true);
@@ -215,8 +216,18 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     //payable funtion
     function invest(uint256 _livestockId, uint256 sharesToInvest) external payable {
         Animal memory animal = liveStock[_livestockId];
-        // checks if its in stock
+
         require(animal.listingState == State.IN_STOCK, "MarketPlace__Not_IN_STOCK");
+
+        if (animal.whiteListType == WhiteListType.PUBLIC) {
+            //if public , check if this msg is in the public whitelist
+            require(whiteList.isPublicWhiteList(msg.sender), "MarketPlace__Not_In_Public_Whitelist");
+        } else if (animal.whiteListType == WhiteListType.PRIVATE) {
+            require(whiteList.isPrivateWhiteList(msg.sender), "MarketPlace__Not_In_Private_Whitelist");
+        }
+
+        // checks if its in stock
+
         // check if theres enough to invest
         require(animal.avaliableShare >= sharesToInvest, "MarketPlace__Not_Enough_Shares_TO_Invest");
         //   uint256 totalPriceToInvest = sharesToInvest * animal.pricepershare;
