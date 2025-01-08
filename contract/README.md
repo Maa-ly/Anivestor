@@ -40,3 +40,10 @@
 
 ### Thursday
 ### Oracle, Token interagrtion, IExec intergration 
+
+### 8th january todo
+- add whitelist in the marketplace
+- collateral system
+- interfaces 
+
+### Oracle,  IExec intergration 

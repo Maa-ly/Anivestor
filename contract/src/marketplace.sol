@@ -13,6 +13,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     uint256 livestockId = 1; // everything is over.....0 nothing 0 id means nada
 
     FarmerRegistration public farmer;
+    WhiteList public whiteList;
 
     /////mapping/////////////
     //mapping(uint256 => Animal) public liveStock;
@@ -25,7 +26,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     event AnimalRegistered(
         uint256 indexed id, address indexed famer, string animalName, uint256 totalAmountSharesMinted
     );
-    event ListCreated(uint256 indexed id, address farmer, uint256 lockPeriod);
+    event ListCreated(uint256 indexed id, address farmer, uint256 lockPeriod, WhiteListType whiteListType);
     event DeListed(uint256 indexed id, address farmer);
     event Invested(uint256 indexed _id, address investor, uint256 amount, uint256 profitPerDay);
     event TransferedOwnership(uint256 indexed _id, address indexed farmer, address newOwner, uint256 totalTokens);
@@ -54,6 +55,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         uint256 avaliableShare; /*TotalSharessharesAvaliable - avaliableShare*/
         uint256 listingTime;
         State listingState;
+        WhiteListType whiteListType; 
     }
 
     enum State {
@@ -61,6 +63,11 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         IN_STOCK,
         /// during the delisting we check if the list is instck if yes, then yooou cannot delist.....
         UNLISTED
+    }
+
+    enum WhiteListType {
+        PUBLIC,
+        PRIVATE
     }
 
     ///////Modifier////////////
@@ -77,7 +84,10 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
     mapping(uint256 => mapping(address => Investor)) public investor;
 
-    constructor(string memory URI) ERC1155(URI) {}
+    constructor(string memory URI, address _whiteListAddress, address _farmerRegistrationAddress) ERC1155(URI) {
+        whiteList = WhiteList(_whiteListAddress);
+        farmer = FarmerRegistration(_farmerRegistrationAddress);
+    }
 
     /**
      * 1. tokenize the livestock
@@ -124,7 +134,8 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         uint256 _pricepershare,
         uint256 _profitPerDay,
         uint256 _lockPeriod,
-        uint256 _periodProfit
+        uint256 _periodProfit,
+        WhiteListType _whiteListType
     ) external isverified onlyLivestockOwner(_livestockId) {
         Animal storage animal = liveStock[_livestockId];
         // farmer hanst already listed that id
@@ -144,12 +155,13 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
             totalAmountSharesMinted: animal.totalAmountSharesMinted, /*TotalSharessharesAvaliable */
             avaliableShare: animal.avaliableShare, /*TotalSharessharesAvaliable - avaliableShare*/
             listingTime: block.timestamp,
-            listingState: State.IN_STOCK
+            listingState: State.IN_STOCK,
+            animal.whiteListType : _whiteListType;
         });
 
         setApprovalForAll(address(this), true);
         _safeTransferFrom(msg.sender, address(this), _livestockId, animal.totalAmountSharesMinted, "");
-        emit ListCreated(_livestockId, msg.sender, _lockPeriod);
+        emit ListCreated(_livestockId, msg.sender, _lockPeriod, _whiteListType);
     }
 
     //whenever a farmer delist there should be a fee .....investers get their money back...
