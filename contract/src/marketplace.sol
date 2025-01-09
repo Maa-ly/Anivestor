@@ -317,14 +317,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         emit Refunded(_livestockId, msg.sender, refundAmount);
     }
 
-    // Events for listing and refund claims
-  
-    //  function refundInvestor(uint256 _livestockId) external {
-    //    Investor memory _investor = investor[_livestockId][msg.sender];
-    //    // require();
-    //  }
-  
-
+    
     //  function spotListing() external {}
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
    //////  interna functions            ///////////////////////////////////////////////////////////////////

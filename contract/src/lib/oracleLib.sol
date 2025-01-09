@@ -91,40 +91,8 @@ import  {AggregatorV3Interface  } from "@chainlink/contracts/src/v0.8/shared/int
         }
     }
 
-    /**
-     * @dev Aggregates prices from multiple feeds and calculates the median price.
-     * @param chainlinkFeeds The array of Chainlink price feed contracts.
-     * @param timeout The timeout period in seconds.
-     * @return medianPrice The median price across all feeds.
-     */
-    function getMedianPrice(AggregatorV3Interface[] memory chainlinkFeeds, uint256 timeout)
-        public
-        view
-        returns (PriceData memory medianPrice)
-    {
-        uint256 feedCount = chainlinkFeeds.length;
-        if (feedCount == 0) revert OracleLib__InsufficientFeeds();
-
-        int256[] memory prices = new int256[](feedCount);
-        uint8 decimals = chainlinkFeeds[0].decimals(); // Assume all feeds have the same decimals
-
-        for (uint256 i = 0; i < feedCount; i++) {
-            PriceData memory priceData = getLatestPrice(chainlinkFeeds[i], timeout);
-            prices[i] = normalizePrice(priceData, decimals);
-        }
-
-        // Sort prices to find the median
-        for (uint256 i = 0; i < prices.length - 1; i++) {
-            for (uint256 j = 0; j < prices.length - i - 1; j++) {
-                if (prices[j] > prices[j + 1]) {
-                    (prices[j], prices[j + 1]) = (prices[j + 1], prices[j]);
-                }
-            }
-        }
-
-        int256 median = prices[feedCount / 2]; // Select the middle value
-        return PriceData({ price: median, decimals: decimals });
-    }
+   
+    
 
    
     function getTimeout(AggregatorV3Interface /* chainlinkFeed */ ) public pure returns (uint256) {
