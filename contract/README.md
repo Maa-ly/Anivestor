@@ -101,9 +101,21 @@
 - function withdrawClaim(uint256 \_livestockId, address \_investorAddress) external {}
 - done
 
+### thing left to be done --------------------------------------
+
+## restructure the code, better error handling, natspec 
+- add interface
+- comment
+- robust naming
+- graphing
+
+
 ### oracles
 
 -acceptedTokens
 -priceFeed
 
 ### iExec tools integration
+- read on iexec 
+- what we can implement in our project
+- make a documation on improvment 
