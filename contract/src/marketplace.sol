@@ -12,20 +12,66 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
 //import{OracleLib} from "contract/src/lib/oracleLib.sol";
 import "contract/src/lib/oracleLib.sol";
 
+
+/** @author Lydia GYamfi Ahenkorah && NObel
+ * @notice This is the marketplace contract, where verified farmers can register
+  livestock/animal and create a listing for the livestockId
+ *@notice investors can buy shares from the list
+ *@notice investors can get a refund
+ *@notice farmer borrowing money from the contract, this money is then used for 
+ a specified listing to pay priceperday of invested shares
+ *@notice uses usdc(listing info and pricing) and weth(collateral is deposited)
+ */
 contract MarketPlace is ERC1155, IERC1155Receiver {
     using OracleLib for AggregatorV3Interface;
 
     AggregatorV3Interface internal s_usdcUsdAggregator; // wthEthereum
     AggregatorV3Interface internal s_wthEthUsdAggregator; // wthEthereum
-    ///////////State Viriables/////////////
+
+     //////////////////////////////////////////////////////////////
+    ///////////State Viriables/////////////////////////////////////
+    //////////////////////////////////////////////////////////////
+    CollateralStruct[] public collateral;
+    Animal[] public liveStock; /* */
+    
     uint256 livestockId = 1; // everything is over.....0 nothing 0 id means nada
     IERC20 public collateralToken; //collateral wthEth
     IERC20 public usdcToken; // base Token for transacting on our platform - usdc
     address public usdcTokenAddress; // USDC token address
+
+    uint256 public collateralIndex = 1;
+
     FarmerRegistration public farmer;
     WhiteList public whiteList;
 
-    /////mapping/////////////
+
+    ////////////////////////////////////////////////////////
+    /////////// Enums /////////////////////////////////////
+    //////////////////////////////////////////////////////
+/**@notice the state of the listing
+ *@SOLDOUT : listing is out of stock
+ *IN-STOCK : IN the market and avaliable
+ *UNLISTED : Removed form the listing
+ */
+    enum State {
+        SOLDOUT,
+        IN_STOCK,
+        /// during the delisting we check if the list is instck if yes, then yooou cannot delist.....
+        UNLISTED
+    }
+
+    /** Type of whitelist 
+     * PUBLIC : anyone can join
+     * PRIvATE : only verified farmer can add investor
+     */
+    enum WhiteListType {
+        PUBLIC,
+        PRIVATE
+    }
+
+     //////////////////////////////////////////////////////////
+    /////mapping///////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     //mapping(uint256 => Animal) public liveStock;
     mapping(uint256 => mapping(address => Investor)) public investor;
     
@@ -34,15 +80,21 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     mapping(uint256 => LivestockBorrow) public livestockBorrowed;
     mapping(uint256 => mapping(address => uint256)) public refunds; // Track refunds for investors
     mapping(uint256 => uint256) public livestockFunding;
+ 
+    
+    mapping(uint256 => uint256) public livestockFunds;
+
 
     //tokenId -> investorAddr -> Investor
-    uint256 public collateralIndex = 1;
+ 
     // mapping(uint256 => uint256)public  livestockidToBorrowAmount;
     //mapping(address => CollateralStruct) public collateral;
 
-   
 
-    CollateralStruct[] public collateral;
+     ////////////////////////////////////////////////////////
+    /////////// structs /////////////////////////////////////
+    //////////////////////////////////////////////////////
+
 
     struct LivestockBorrow {
         uint256 livestockId;
@@ -86,11 +138,8 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         WhiteListType whiteListType;
     }
 
-
-    Animal[] public liveStock; /* */
-
-    //////Event//////////////
-    event AnimalRegistered(
+      //////Event//////////////
+      event AnimalRegistered(
         uint256 indexed id, address indexed famer, string animalName, uint256 totalAmountSharesMinted
     );
     event DepositedCollateral(address indexed farmer, uint256 amount, uint256 id);
@@ -100,25 +149,14 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     event TransferedOwnership(uint256 indexed _id, address indexed farmer, address newOwner, uint256 totalTokens);
     event DeListed(uint256 livestockId, address indexed owner);
     event Refunded(uint256 livestockId, address indexed investor, uint256 amount);
-    
+    event Withdrawn(uint256 indexed livestockId, address indexed owner, uint256 amount);
     event LoanRepaid(uint256 indexed _collateralIndex, uint256 indexed _livestockId, uint256 _amount);
     event ReleaseCollateal(uint256 _collateralIndex, address farmer, uint256 valueOfCollateral);
 
 
     // bytes32 constant STRING_SIZE_SHOULD_BE = 32;
    
-    enum State {
-        SOLDOUT,
-        IN_STOCK,
-        /// during the delisting we check if the list is instck if yes, then yooou cannot delist.....
-        UNLISTED
-    }
-
-    enum WhiteListType {
-        PUBLIC,
-        PRIVATE
-    }
-
+ 
     ///////Modifier////////////
 
     modifier onlyLivestockOwner(uint256 _livestockId) {
@@ -146,6 +184,9 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         s_wthEthUsdAggregator = AggregatorV3Interface(wthEthUsdAggregatorAddress);
     }
 
+
+
+  
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
    //////  external farmer functions            ///////////////////////////////////////////////////////////////////
    ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -346,8 +387,8 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         _investor.lockingPeriod = block.timestamp + animal.lockPeriod;
         _investor.timeTracking = block.timestamp; //ly will come up with something better
         _investor.totalProfit = totalProfit;
-// Ensure the user has approved enough USDC for the contract
-require(usdcToken.allowance(msg.sender, address(this)) >= msg.value, "MarketPlace__Allowance_Insufficient");
+        // Ensure the user has approved enough USDC for the contract
+        require(usdcToken.allowance(msg.sender, address(this)) >= msg.value, "MarketPlace__Allowance_Insufficient");
         bool success = usdcToken.transferFrom(msg.sender, address(this), msg.value);
         require(success, "MarketPlace__USDC_Transfer_Failed");
         // transfer fund
@@ -518,6 +559,45 @@ require(usdcToken.allowance(msg.sender, address(this)) >= msg.value, "MarketPlac
         emit LoanRepaid(_collateralIndex, _livestockId, _amount);
     }
 
+    /**
+    * used by farmer to withdraw funding from specific livestockId
+     */
+     // Mapping to track the total amount of funds for each livestockId
+     
+    function withdrawListingFunds(uint256 _livestockId) external onlyLivestockOwner( _livestockId){
+        Animal storage animal = liveStock[_livestockId];
+
+        // Ensure the livestock is listed and has some available funds
+        require(animal.listingState == State.IN_STOCK, "MarketPlace___Not_Listed");
+        uint256 availableFunds = livestockFunds[_livestockId];
+        require(availableFunds > 0, "MarketPlace___No_Funds_Available");
+
+        // Check for any remaining refunds to investors
+        uint256 totalRefunds = 0;
+        for (address investorAddr = address(0); investorAddr != address(0); investorAddr) {
+            uint256 refundAmount = refunds[_livestockId][investorAddr];
+            totalRefunds += refundAmount;
+        }
+
+        uint256 withdrawableAmount = availableFunds - totalRefunds;
+
+        // Ensure the contract has enough funds to perform the transfer
+        require(address(this).balance >= withdrawableAmount, "MarketPlace___Insufficient_Funds");
+        // Set the livestock funds to 0 as they have been withdrawn
+            livestockFunds[_livestockId] = 0;
+
+        // Transfer the withdrawable funds to the farmer
+        bool success = usdcToken.transferFrom(msg.sender, address(this), msg.value);
+        require(success, "MarketPlace__USDC_Transfer_Failed");
+        //(bool success, ) = msg.sender.call{value: withdrawableAmount}("");
+        //require(success, "MarketPlace___Withdraw_Fund_Failed");
+
+        
+        // Emit event for the withdrawal
+        emit Withdrawn(_livestockId, msg.sender, withdrawableAmount);
+    }
+    }
+
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////
    //////  getter functions            ///////////////////////////////////////////////////////////////////
@@ -553,6 +633,7 @@ require(usdcToken.allowance(msg.sender, address(this)) >= msg.value, "MarketPlac
     function getListingDetails(uint256 _livestockId) external view returns (Animal memory) {
         return liveStock[_livestockId];
     }
+
 
     function onERC1155Received(address operator, address from, uint256 id, uint256 value, bytes calldata data)
         external
