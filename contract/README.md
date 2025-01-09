@@ -1,5 +1,5 @@
 ## Anivestor
-
+### ustaj vojsko
 **Farmer Risk**
 - farmer needs to put in a collateral to make sure theres a balance
 
@@ -81,6 +81,12 @@
 - Repays the borrowed amount
 
 ### functions
-- function depositCollateral
-- function releaseCollateral
-- function repayBorrowedAmount
+- function releaseCollateral() external {}
+
+- function repayCollateral() external{}
+
+-  function getFarmerBorrowedAmount() external{}
+
+- function getFarmerAvailableCredit() external{}
+
+- function withdrawClaim(uint256 _livestockId, address _investorAddress) external {}

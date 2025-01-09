@@ -156,7 +156,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         uint256 _pricepershare,
         uint256 _profitPerDay,
         uint256 _lockPeriod,
-        uint256 _periodProfit,
+        uint256 _periodProfit, // the entire lock period/duration 
         WhiteListType _whiteListType
     ) external isverified onlyLivestockOwner(_livestockId) {
         Animal storage animal = liveStock[_livestockId];
@@ -320,7 +320,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
      // accepted collateral e.g USDT, something different;
    function depositCollateral(uint256 amount) external payable isverified returns(uint256) {
     uint256 _collateralIndex = collateralIndex;
-    CollateralStruct storage collateralInfomation = collateral[_collateralIndex ];
+    //CollateralStruct storage collateralInfomation = collateral[_collateralIndex ];
     require(amount > 0, "COLLATERAL__Amount_Must_Greater_Than_Zero");
     
     uint256 value = amount; // calculate the value of collateral -LTV
@@ -343,8 +343,12 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     _safeTransferFrom(msg.sender, address(this), _collateralIndex, value, "");
    
     emit DepositedCollateral(msg.sender , value, _collateralIndex);
+    return _collateralIndex;
     
  }
+
+ /** @notice borrow amount is allocated to the famer addresss , after you deposit you get id......
+  */
  
  function borrow(/*uint256 _livestockId,*/uint256 _collateralIndex, uint256 borrowAmount) external {
     // borrowAmount < (valueOfColleral - borrowed)
@@ -381,21 +385,22 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
  }
 
  //use funds for listing
- function allocateFundsToListing(uint256 _livestockId, uint256 _amount)external onlyLivestockOwner(_livestockId){
+
+ function allocateFundsToListing(uint256 _livestockId, /*uint256 _amount*/)external  view onlyLivestockOwner(_livestockId){
     Animal storage animal = liveStock[_livestockId];
     // Get farmer's total borrowed amount
-    uint256 totalBorrowed = 0;
-    for(uint256 i = 0; i < collateralIndex; i++) {
-        if(collateral[i].farmer == msg.sender) {
-            totalBorrowed += collateral[i].borrowed;
-        }
-    }
-    
-    require(_amount <= totalBorrowed, "Insufficient borrowed funds");
+   // uint256 totalBorrowed = 0;
+    //for(uint256 i = 0; i < collateralIndex; i++) {
+      //  if(collateral[i].farmer == msg.sender) {
+       //     totalBorrowed += collateral[i].borrowed;
+        //}
+   // }
+    //calculateProfitPerDay(_livestockId, sharesOwned);
+    //require(_amount <= totalBorrowed, "Insufficient borrowed funds");
   
  }
 
- function calculateProfitperdayOfListing()external{}
+
 
  function releaseCollateral() external {}
 
