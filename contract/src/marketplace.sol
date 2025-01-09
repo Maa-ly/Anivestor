@@ -9,28 +9,38 @@ import {WhiteList} from "./whiteList.sol";
 import {FarmerRegistration} from "./FarmerRegistration.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+//import{OracleLib} from "contract/src/lib/oracleLib.sol";
+import "contract/src/lib/oracleLib.sol";
 
 contract MarketPlace is ERC1155, IERC1155Receiver {
+    using OracleLib for AggregatorV3Interface;
+
     AggregatorV3Interface internal s_usdcUsdAggregator; // wthEthereum
     AggregatorV3Interface internal s_wthEthUsdAggregator; // wthEthereum
     ///////////State Viriables/////////////
     uint256 livestockId = 1; // everything is over.....0 nothing 0 id means nada
     IERC20 public collateralToken; //collateral wthEth
     IERC20 public usdcToken; // base Token for transacting on our platform - usdc
-
+    address public usdcTokenAddress; // USDC token address
     FarmerRegistration public farmer;
     WhiteList public whiteList;
 
     /////mapping/////////////
     //mapping(uint256 => Animal) public liveStock;
+    mapping(uint256 => mapping(address => Investor)) public investor;
+    
+    mapping(address => uint256) public balances;
+    // uint256 is livestockId
+    mapping(uint256 => LivestockBorrow) public livestockBorrowed;
+    mapping(uint256 => mapping(address => uint256)) public refunds; // Track refunds for investors
+    mapping(uint256 => uint256) public livestockFunding;
 
     //tokenId -> investorAddr -> Investor
     uint256 public collateralIndex = 1;
     // mapping(uint256 => uint256)public  livestockidToBorrowAmount;
     //mapping(address => CollateralStruct) public collateral;
 
-    event DepositedCollateral(address indexed farmer, uint256 amount, uint256 id);
-    event AmountBorrowed(address indexed farmer, uint256 amount);
+   
 
     CollateralStruct[] public collateral;
 
@@ -50,23 +60,6 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     }
     // uint256 amountLeftToBorrow;
     //uint256 livestockId;
-
-    mapping(address => uint256) public balances;
-    // uint256 is livestockId
-    mapping(uint256 => LivestockBorrow) public livestockBorrowed;
-
-    Animal[] public liveStock; /* */
-
-    //////Event//////////////
-    event AnimalRegistered(
-        uint256 indexed id, address indexed famer, string animalName, uint256 totalAmountSharesMinted
-    );
-    event ListCreated(uint256 indexed id, address farmer, uint256 lockPeriod, WhiteListType whiteListType);
-    event DeListed(uint256 indexed id, address farmer);
-    event Invested(uint256 indexed _id, address investor, uint256 amount, uint256 profitPerDay);
-    event TransferedOwnership(uint256 indexed _id, address indexed farmer, address newOwner, uint256 totalTokens);
-
-    // bytes32 constant STRING_SIZE_SHOULD_BE = 32;
     struct Investor {
         uint256 totalShares;
         uint256 timeTracking;
@@ -93,6 +86,27 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         WhiteListType whiteListType;
     }
 
+
+    Animal[] public liveStock; /* */
+
+    //////Event//////////////
+    event AnimalRegistered(
+        uint256 indexed id, address indexed famer, string animalName, uint256 totalAmountSharesMinted
+    );
+    event DepositedCollateral(address indexed farmer, uint256 amount, uint256 id);
+    event AmountBorrowed(address indexed farmer, uint256 amount);
+    event ListCreated(uint256 indexed id, address farmer, uint256 lockPeriod, WhiteListType whiteListType);
+    event Invested(uint256 indexed _id, address investor, uint256 amount, uint256 profitPerDay);
+    event TransferedOwnership(uint256 indexed _id, address indexed farmer, address newOwner, uint256 totalTokens);
+    event DeListed(uint256 livestockId, address indexed owner);
+    event Refunded(uint256 livestockId, address indexed investor, uint256 amount);
+    
+    event LoanRepaid(uint256 indexed _collateralIndex, uint256 indexed _livestockId, uint256 _amount);
+    event ReleaseCollateal(uint256 _collateralIndex, address farmer, uint256 valueOfCollateral);
+
+
+    // bytes32 constant STRING_SIZE_SHOULD_BE = 32;
+   
     enum State {
         SOLDOUT,
         IN_STOCK,
@@ -117,7 +131,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         _;
     }
 
-    mapping(uint256 => mapping(address => Investor)) public investor;
+
 
     constructor(string memory URI, address _whiteListAddress, address _farmerRegistrationAddress, address _tokenAddress, address usdcUsdAggregatorAddress, address wthEthUsdAggregatorAddress)
         ERC1155(URI)
@@ -125,9 +139,16 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         whiteList = WhiteList(_whiteListAddress);
         farmer = FarmerRegistration(_farmerRegistrationAddress);
         collateralToken = IERC20(_tokenAddress);
+        usdcToken =IERC20(_tokenAddress);
+      //  usdcTokenAddress = _tokenAddress;
+
         s_usdcUsdAggregator = AggregatorV3Interface(usdcUsdAggregatorAddress);
         s_wthEthUsdAggregator = AggregatorV3Interface(wthEthUsdAggregatorAddress);
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+   //////  external farmer functions            ///////////////////////////////////////////////////////////////////
+   ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * 1. tokenize the livestock
@@ -213,29 +234,60 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     //2. refund the investors
     //3. delisting fees
     //4. we delist
-    function deList(uint256 _livestockId) external view onlyLivestockOwner(_livestockId) {
+ 
+    function deList(uint256 _livestockId) external onlyLivestockOwner(_livestockId) {
         Animal storage animal = liveStock[_livestockId];
         require(animal.listingState == State.IN_STOCK, "MarketPlace___Not_Listed");
 
+        // If there are any shares sold, refund the investors
         if (animal.avaliableShare < animal.totalAmountSharesMinted) {
-            // refund the investor
+            uint256 soldShares = animal.totalAmountSharesMinted - animal.avaliableShare;
+            uint256 refundPerShare = animal.pricepershare * soldShares;
+
+            // Iterate through the investors to calculate their refunds
+            for (address investorAddr = address(0); investorAddr != address(0); investorAddr) {
+                if (investor[_livestockId][investorAddr].totalShares > 0) {
+                    uint256 sharesOwned = investor[_livestockId][investorAddr].totalShares;
+                    uint256 refundAmount = (sharesOwned * refundPerShare);
+
+                    refunds[_livestockId][investorAddr] = refundAmount;
+                }
+            }
         }
+
+        // Mark as unlisted
+        liveStock[_livestockId].listingState = State.UNLISTED;
+
+        emit DeListed(_livestockId, msg.sender);
     }
 
+    // Investor claim refund function (Pull method)
+    function Refund(uint256 _livestockId) external {
+        uint256 refundAmount = refunds[_livestockId][msg.sender];
+        require(refundAmount > 0, "MarketPlace___No_Refund_Available");
+
+        // Reset the refund to prevent re-claims
+        refunds[_livestockId][msg.sender] = 0;
+
+        // Transfer the refund to the investor
+        bool success = usdcToken.transferFrom(address(this), msg.sender, refundAmount);
+        require(success, "MarketPlace___Refund_Transfer_Failed");
+
+        emit Refunded(_livestockId, msg.sender, refundAmount);
+    }
+
+    // Events for listing and refund claims
+  
     //  function refundInvestor(uint256 _livestockId) external {
     //    Investor memory _investor = investor[_livestockId][msg.sender];
     //    // require();
     //  }
-
-    function getListings() external view returns (Animal[] memory) {
-        return liveStock;
-    }
-
-    function getListingDetails(uint256 _livestockId) external view returns (Animal memory) {
-        return liveStock[_livestockId];
-    }
+  
 
     //  function spotListing() external {}
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+   //////  interna functions            ///////////////////////////////////////////////////////////////////
+   ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     function calculateProfitPerDay(uint256 _livestockId, uint256 sharesOwned) internal view returns (uint256) {
         Animal memory animal = liveStock[_livestockId];
@@ -254,6 +306,9 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         return totalProfit;
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+   //////  exteranl investor functions            ///////////////////////////////////////////////////////////////////
+   ///////////////////////////////////////////////////////////////////////////////////////////////////////
     //buying shares
     //payable funtion
     function invest(uint256 _livestockId, uint256 sharesToInvest) external payable {
@@ -291,12 +346,14 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         _investor.lockingPeriod = block.timestamp + animal.lockPeriod;
         _investor.timeTracking = block.timestamp; //ly will come up with something better
         _investor.totalProfit = totalProfit;
-
+// Ensure the user has approved enough USDC for the contract
+require(usdcToken.allowance(msg.sender, address(this)) >= msg.value, "MarketPlace__Allowance_Insufficient");
+        bool success = usdcToken.transferFrom(msg.sender, address(this), msg.value);
+        require(success, "MarketPlace__USDC_Transfer_Failed");
         // transfer fund
         _safeTransferFrom(address(this), msg.sender, _livestockId, sharesToInvest, "");
 
-        (bool success,) = animal.farmer.call{value: msg.value}("");
-        require(success, "MARKETPlACE___TRansaction failed");
+        
 
         //emit Invested
         emit Invested(_livestockId, msg.sender, sharesToInvest, profitPerDay);
@@ -316,6 +373,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     
 
     // after purchaisng you can transfer ownership ? right
+    
 
     function transferListOwnerShip(uint256 _livestockId, address newOwner) external onlyLivestockOwner(_livestockId) {
         Animal memory animal = liveStock[_livestockId];
@@ -338,6 +396,10 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         //transfer profitToClaim to investor;
         collateralToken.transferFrom(address(this), msg.sender, profitToClaim);
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+   //////  borrowing functions            ///////////////////////////////////////////////////////////////////
+   ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // accepted collateral e.g USDT, something different;
     function depositCollateral(uint256 amount) external payable isverified returns (uint256) {
@@ -362,7 +424,8 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         //collateralInfomation.lockPeriod = block.timestamp;
         // collateralInfomation.borrowed = 0;
         collateralIndex++;
-        _safeTransferFrom(msg.sender, address(this), _collateralIndex, value, "");
+       // _safeTransferFrom(msg.sender, address(this), _collateralIndex, value, "");
+        collateralToken.transferFrom(msg.sender, address(this), value);
 
         emit DepositedCollateral(msg.sender, value, _collateralIndex);
         return _collateralIndex;
@@ -404,8 +467,6 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
     //use funds for listing
 
-    mapping(uint256 => uint256) public livestockFunding;
-
     function allocateFundsToListing(uint256 _livestockId, uint256 _collateralIndex /*uint256 _amount*/ )
         external
         onlyLivestockOwner(_livestockId)
@@ -425,7 +486,6 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         balances[msg.sender] -= animal.periodProfit;
     }
 
-    event ReleaseCollateal(uint256 _collateralIndex, address farmer, uint256 valueOfCollateral);
 
     function releaseCollateral(uint256 _collateralIndex) external {
         CollateralStruct memory collateralInfo = collateral[_collateralIndex];
@@ -433,12 +493,13 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         require(collateralInfo.isLocked || collateralInfo.borrowed == 0, "COLLATERAL__Cannot_Release");
         collateral[_collateralIndex] =
             CollateralStruct({farmer: address(0), lockPeriod: 0, isLocked: false, valueOfCollateral: 0, borrowed: 0});
+            delete collateral[_collateralIndex];
         collateralToken.transferFrom(address(this), msg.sender, collateralInfo.valueOfCollateral);
         //   _safeTransferFrom(address(this), msg.sender, _collateralIndex, collateralInfo.valueOfCollateral, "");
         emit ReleaseCollateal(_collateralIndex, msg.sender, collateralInfo.valueOfCollateral);
     }
+    
 
-    event LoanRepaid(uint256 indexed _collateralIndex, uint256 indexed _livestockId, uint256 _amount);
 
     function repayLoan(uint256 _collateralIndex, uint256 _livestockId, uint256 _amount) external payable {
         CollateralStruct storage collateralInfo = collateral[_collateralIndex];
@@ -457,6 +518,10 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         emit LoanRepaid(_collateralIndex, _livestockId, _amount);
     }
 
+
+   ////////////////////////////////////////////////////////////////////////////////////////////////////////
+   //////  getter functions            ///////////////////////////////////////////////////////////////////
+   ///////////////////////////////////////////////////////////////////////////////////////////////////////
     function getFarmerBorrowedAmount(uint256 _collateralIndex) external view returns (uint256) {
         CollateralStruct memory _collateral = collateral[_collateralIndex];
         return _collateral.borrowed;
@@ -473,10 +538,22 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         (, int256 price,,, ) = s_usdcUsdAggregator.latestRoundData();
         return uint256(price);
     }
+
     function getwthEthPriceInUsd() public view returns (uint256) {
         (, int256 price,,, ) = s_wthEthUsdAggregator.latestRoundData();
         return uint256(price);
     }
+
+    
+
+    function getListings() external view returns (Animal[] memory) {
+        return liveStock;
+    }
+
+    function getListingDetails(uint256 _livestockId) external view returns (Animal memory) {
+        return liveStock[_livestockId];
+    }
+
     function onERC1155Received(address operator, address from, uint256 id, uint256 value, bytes calldata data)
         external
         override
