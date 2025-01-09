@@ -19,7 +19,28 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     //mapping(uint256 => Animal) public liveStock;
 
     //tokenId -> investorAddr -> Investor
-
+    uint256 public collateralIndex = 1;
+    // mapping(uint256 => uint256)public  livestockidToBorrowAmount;
+     //mapping(address => CollateralStruct) public collateral;
+  
+     event DepositedCollateral(address indexed farmer, uint256 amount, uint256 id);
+     event AmountBorrowed(address indexed farmer, uint256 amount);
+  
+  
+     CollateralStruct[] public collateral;
+  
+     struct CollateralStruct {
+        // uint256 amount; //
+        address farmer;
+        uint256 lockPeriod;
+        bool isLocked;
+        uint256 valueOfCollateral;
+        uint256 borrowed;
+  
+        // uint256 amountLeftToBorrow;
+        //uint256 livestockId;
+     }
+  
     Animal[] public liveStock; /* */
 
     //////Event//////////////
@@ -197,18 +218,20 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
     //  function spotListing() external {}
 
-    function calculateProfitPerDay(uint256 _livestockId, address investorAddress) internal view returns (uint256) {
+    function calculateProfitPerDay(uint256 _livestockId, uint256 sharesOwned) internal view returns (uint256) {
         Animal memory animal = liveStock[_livestockId];
-        Investor memory _investor = investor[_livestockId][investorAddress];
-        uint256 profitPerDay = (animal.profitPerDay / animal.totalAmountSharesMinted) * _investor.totalShares;
+        Investor memory _investor = investor[_livestockId][msg.sender];
+        sharesOwned =_investor.totalShares;
+        uint256 profitPerDay = (animal.profitPerDay / animal.totalAmountSharesMinted) * sharesOwned;
         return profitPerDay;
     }
 
-    function calculateTotalProfit(uint256 _livestockId, address investorAddress) internal view returns (uint256) {
+    function calculateTotalProfit(uint256 _livestockId, uint256 duration) internal view returns (uint256) {
         Animal memory animal = liveStock[_livestockId];
-        Investor memory _investor = investor[_livestockId][investorAddress];
+        Investor memory _investor = investor[_livestockId][msg.sender];
         uint256 profitPerDay = (animal.profitPerDay / animal.totalAmountSharesMinted) * _investor.totalShares;
-        uint256 totalProfit = profitPerDay * _investor.lockingPeriod;
+        duration =_investor.lockingPeriod;
+        uint256 totalProfit = profitPerDay * duration;
         return totalProfit;
     }
 
@@ -293,6 +316,95 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
         //transfer profitToClaim to investor;
     }
+
+     // accepted collateral e.g USDT, something different;
+   function depositCollateral(uint256 amount) external payable isverified returns(uint256) {
+    uint256 _collateralIndex = collateralIndex;
+    CollateralStruct storage collateralInfomation = collateral[_collateralIndex ];
+    require(amount > 0, "COLLATERAL__Amount_Must_Greater_Than_Zero");
+    
+    uint256 value = amount; // calculate the value of collateral -LTV
+    collateral[_collateralIndex ] = CollateralStruct({
+       farmer: msg.sender,
+      lockPeriod: block.timestamp,
+      isLocked: false,
+      valueOfCollateral: value,
+        borrowed: 0
+    });
+    //collateral[msg.sender].valueOfCollateral = value;
+    //collateral[msg.sender].isLocked = true;
+    //deposit collateral 
+    //get collateral value
+   // collateralInfomation.valueOfCollateral = value;
+    //collateralInfomation.isLocked = true;
+    //collateralInfomation.lockPeriod = block.timestamp;
+   // collateralInfomation.borrowed = 0;
+    collateralIndex++;
+    _safeTransferFrom(msg.sender, address(this), _collateralIndex, value, "");
+   
+    emit DepositedCollateral(msg.sender , value, _collateralIndex);
+    
+ }
+ 
+ function borrow(/*uint256 _livestockId,*/uint256 _collateralIndex, uint256 borrowAmount) external {
+    // borrowAmount < (valueOfColleral - borrowed)
+    CollateralStruct memory collateralInformation = collateral[_collateralIndex];
+   // require(collateral[msg.sender].valueOfCollateral > 0, "COLLATERAL__Not_Enough_Value");
+    //require(borrowAmount < (_collateral.valueOfCollateral - _collateral.borrowed), "COLLATERAL__BorrowAmount_Exceeded_Value");
+
+   // collateral[msg.sender].borrowed += borrowAmount;
+    //livestock -> livestockProfit;
+    //livestockidToBorrowAmount[ _livestockId] += borrowAmount;
+
+    //totalSharesMinted - availableShares;
+
+    // Ensure the collateral belongs to the sender
+       require(collateralInformation.farmer == msg.sender, "COLLATERAL__Not_The_Owner_Of_Collateral");
+
+    // Ensure the collateral is not already locked
+    require(!collateralInformation.isLocked, "COLLATERAL__Collateral_Already_Locked");
+
+
+
+    // Calculate maximum borrowable amount based on an LTV ratio
+    uint256 availableAmountToBorrow = collateralInformation.valueOfCollateral - collateralInformation.borrowed;
+    //uint256  availableAmountToBorrow = collateralInformation.valueOfCollateral;
+    require(borrowAmount > 0, "COLLATERAL__BorrowAmount_Must_Be_Greater_Than_Zero");
+    require(borrowAmount <= availableAmountToBorrow, "COLLATERAL__BorrowAmount_Exceeds_Avaliablle_Amount_Allowed");
+
+  // Update the collateral struct with the borrowed amount
+ collateralInformation.borrowed += borrowAmount;
+ collateralInformation.isLocked = true;
+
+ emit AmountBorrowed(msg.sender, borrowAmount);
+
+ }
+
+ //use funds for listing
+ function allocateFundsToListing(uint256 _livestockId, uint256 _amount)external onlyLivestockOwner(_livestockId){
+    Animal storage animal = liveStock[_livestockId];
+    // Get farmer's total borrowed amount
+    uint256 totalBorrowed = 0;
+    for(uint256 i = 0; i < collateralIndex; i++) {
+        if(collateral[i].farmer == msg.sender) {
+            totalBorrowed += collateral[i].borrowed;
+        }
+    }
+    
+    require(_amount <= totalBorrowed, "Insufficient borrowed funds");
+  
+ }
+
+ function calculateProfitperdayOfListing()external{}
+
+ function releaseCollateral() external {}
+
+ function repayCollateral() external{}
+
+ function getFarmerBorrowedAmount() external{}
+
+ function getFarmerAvailableCredit() external{}
+
 
     function withdrawClaim(uint256 _livestockId, address _investorAddress) external {}
 
