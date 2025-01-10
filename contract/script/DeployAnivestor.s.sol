@@ -39,7 +39,7 @@ contract DeployAnivestor is Script {
         
         WhiteListDeployer whiteListDeployer = new WhiteListDeployer(address(farmer));
        
-        whiteListDeployer.deployWhiteList(); 
+      //   whiteListDeployer.deployWhiteList(); 
      
         address farmerWhiteList = whiteListDeployer.getFarmerWhiteList(msg.sender);
         
