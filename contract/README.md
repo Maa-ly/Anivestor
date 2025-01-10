@@ -123,3 +123,11 @@
 - read on iexec 
 - what we can implement in our project
 - make a documation on improvment 
+
+### TOdo tomorrow
+- Interface 
+- Funding the contract
+- last code clean-up
+- get deployment address
+
+

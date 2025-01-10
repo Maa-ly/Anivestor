@@ -8,9 +8,9 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import {WhiteList} from "./whiteList.sol";
 import {FarmerRegistration} from "./FarmerRegistration.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-//import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
-//import{OracleLib} from "contract/src/lib/oracleLib.sol";
-//import "contract/src/lib/oracleLib.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+import{OracleLib} from "contract/src/lib/oracleLib.sol";
+import "contract/src/lib/oracleLib.sol";
 
 
 /** @author Lydia GYamfi Ahenkorah && NObel
@@ -25,24 +25,29 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 contract MarketPlace is ERC1155, IERC1155Receiver {
     
 
-    /**@notice taking out priceFeed, Noble will add them in frontend 
-     */
-   // using OracleLib for AggregatorV3Interface;
+    
+   using OracleLib for AggregatorV3Interface;
 
-    //AggregatorV3Interface internal s_usdcUsdAggregator; // usdc
-   // AggregatorV3Interface internal s_wthEthUsdAggregator; // wthEthereum
-    //AggregatorV3Interface internal s_wbtcUsdAggregator; // wbtc
+    AggregatorV3Interface internal s_usdtUsdAggregator; // usdc
+   AggregatorV3Interface internal s_wethEthUsdAggregator; // wthEthereum
+    AggregatorV3Interface internal s_wbtcUsdAggregator; // wbtc
 
      //////////////////////////////////////////////////////////////
     ///////////State Viriables/////////////////////////////////////
     //////////////////////////////////////////////////////////////
+    uint256 public constant USDT_DECIMAL = 1e6;
+    uint256 public constant WETH_DECIMAL = 1e18;
+    uint256 public constant WBTC_DECIMAL = 1e8;
+
     CollateralStruct[] public collateral;
     Animal[] public liveStock; /* */
     
     uint256 livestockId = 1; // everything is over.....0 nothing 0 id means nada
     IERC20 public collateralToken; //collateral weth / wbtc
-    IERC20 public usdcToken; // base Token for transacting on our platform - usdc
-    address public usdcTokenAddress; // USDC token address
+    IERC20 public usdtToken; // base Token for transacting on our platform - usdc
+    address public usdtTokenAddress; // USDT token address
+    address public wethTokenAddress;
+    address public wbtcTokenAddress;
 
     uint256 public collateralIndex = 1;
 
@@ -157,6 +162,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     event Withdrawn(uint256 indexed livestockId, address indexed owner, uint256 amount);
     event LoanRepaid(uint256 indexed _collateralIndex, uint256 indexed _livestockId, uint256 _amount);
     event ReleaseCollateal(uint256 _collateralIndex, address farmer, uint256 valueOfCollateral);
+    event Claim(address indexed investor, uint256 Id, uint256 amount);
 
 
     // bytes32 constant STRING_SIZE_SHOULD_BE = 32;
@@ -176,18 +182,18 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
 
 
-    constructor(string memory URI, address _whiteListAddress, address _farmerRegistrationAddress, address _tokenAddress)
+    constructor(string memory URI, address _whiteListAddress, address _farmerRegistrationAddress, address _tokenAddress, address usdtUsdAggregatorAddress, address wethEthUsdAggregatorAddress, address wbtcUsdAggregatorAddress)
         ERC1155(URI)
     {
         whiteList = WhiteList(_whiteListAddress);
         farmer = FarmerRegistration(_farmerRegistrationAddress);
         collateralToken = IERC20(_tokenAddress);
-        usdcToken =IERC20(_tokenAddress);
+        usdtToken =IERC20(_tokenAddress);
       //  usdcTokenAddress = _tokenAddress;
 
-        //s_usdcUsdAggregator = AggregatorV3Interface(usdcUsdAggregatorAddress);
-       // s_wthEthUsdAggregator = AggregatorV3Interface(wthEthUsdAggregatorAddress);
-        //s_wbtcUsdAggregator =  AggregatorV3Interface(wbtcUsdAggregatorAddress);
+        s_usdtUsdAggregator = AggregatorV3Interface(usdtUsdAggregatorAddress);
+       s_wethEthUsdAggregator = AggregatorV3Interface(wethEthUsdAggregatorAddress);
+        s_wbtcUsdAggregator =  AggregatorV3Interface(wbtcUsdAggregatorAddress);
     }
 
 
@@ -311,16 +317,18 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     // Investor claim refund function (Pull method)
     function Refund(uint256 _livestockId) external {
         uint256 refundAmount = refunds[_livestockId][msg.sender];
-        require(refundAmount > 0, "MarketPlace___No_Refund_Available");
+        uint256 priceinUSD = getusdtPriceInUsd();
+        uint256 refundAmountInUsd = (refundAmount * priceinUSD ) / USDT_DECIMAL;
+        require(refundAmountInUsd > 0, "MarketPlace___No_Refund_Available");
 
         // Reset the refund to prevent re-claims
         refunds[_livestockId][msg.sender] = 0;
 
         // Transfer the refund to the investor
-        bool success = usdcToken.transferFrom(address(this), msg.sender, refundAmount);
+        bool success = usdtToken.transferFrom(address(this), msg.sender, refundAmountInUsd);
         require(success, "MarketPlace___Refund_Transfer_Failed");
 
-        emit Refunded(_livestockId, msg.sender, refundAmount);
+        emit Refunded(_livestockId, msg.sender, refundAmountInUsd);
     }
 
     
@@ -334,16 +342,20 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         Investor memory _investor = investor[_livestockId][msg.sender];
         sharesOwned = _investor.totalShares;
         uint256 profitPerDay = (animal.profitPerDay / animal.totalAmountSharesMinted) * sharesOwned;
-        return profitPerDay;
+        uint256 priceInUsd = getusdtPriceInUsd();
+        uint256 profitPerDayInUsd = (profitPerDay * priceInUsd) / USDT_DECIMAL;
+        return profitPerDayInUsd;
     }
 
-    function calculateTotalProfit(uint256 _livestockId, uint256 duration) internal view returns (uint256) {
+    function calculateTotalProfit(uint256 _livestockId) internal view returns (uint256) {
         Animal memory animal = liveStock[_livestockId];
         Investor memory _investor = investor[_livestockId][msg.sender];
+        uint256 priceInUsd = getusdtPriceInUsd();
         uint256 profitPerDay = (animal.profitPerDay / animal.totalAmountSharesMinted) * _investor.totalShares;
-        duration = _investor.lockingPeriod;
+       uint256  duration = _investor.lockingPeriod;
         uint256 totalProfit = profitPerDay * duration;
-        return totalProfit;
+        uint256 totalProfitInUsd = (totalProfit * priceInUsd) / USDT_DECIMAL;
+        return totalProfitInUsd ;
     }
 
 
@@ -370,7 +382,12 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         require(animal.avaliableShare >= sharesToInvest, "MarketPlace__Not_Enough_Shares_TO_Invest");
          //  uint256 totalPriceToInvest = sharesToInvest * animal.pricepershare;
          //  totalPriceToInvest = totalPriceToInvest * getUsdcPriceInUsd;
-        require(msg.value == animal.pricepershare * sharesToInvest, "MarketPlace__Not_Enough_funds");
+         uint256 totalPriceToInvest = sharesToInvest * animal.pricepershare;
+        uint256 priceInUsd = getusdtPriceInUsd(); 
+        uint256 totalPriceInUsd = (totalPriceToInvest * priceInUsd) / USDT_DECIMAL; 
+
+       require(msg.value == totalPriceInUsd, "MarketPlace__Not_Enough_funds");
+       
 
         // remove the bough shares from the total
         Investor storage _investor = investor[_livestockId][msg.sender];
@@ -381,15 +398,17 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         _investor.totalShares += sharesToInvest;
 
         uint256 profitPerDay = (animal.profitPerDay / animal.totalAmountSharesMinted) * sharesToInvest;
+        uint256 profitPerDayInUsd = profitPerDay * priceInUsd;
         uint256 totalProfit = profitPerDay * animal.lockPeriod;
+        uint256 totalProfitinUsd = totalProfit * priceInUsd;
 
-        _investor.profitPerDay = profitPerDay;
+        _investor.profitPerDay = profitPerDayInUsd;
         _investor.lockingPeriod = block.timestamp + animal.lockPeriod;
         _investor.timeTracking = block.timestamp; //ly will come up with something better
-        _investor.totalProfit = totalProfit;
+        _investor.totalProfit = totalProfitinUsd;
         // Ensure the user has approved enough USDC for the contract
-        require(usdcToken.allowance(msg.sender, address(this)) >= msg.value, "MarketPlace__Allowance_Insufficient");
-        bool success = usdcToken.transferFrom(msg.sender, address(this), msg.value);
+        require(usdtToken.allowance(msg.sender, address(this)) >= msg.value, "MarketPlace__Allowance_Insufficient");
+        bool success = usdtToken.transferFrom(msg.sender, address(this), msg.value);
         require(success, "MarketPlace__USDC_Transfer_Failed");
         // transfer fund
         _safeTransferFrom(address(this), msg.sender, _livestockId, sharesToInvest, "");
@@ -431,29 +450,47 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         Investor storage _investor = investor[_livestockId][msg.sender];
         uint256 daysPassed = (_investor.timeTracking - block.timestamp) / 24 * 60 * 60; // convert to days
         uint256 availableClaimableDays = daysPassed - _investor.daysClaimed;
+        uint256 priceInUSD = getusdtPriceInUsd();
         uint256 profitToClaim = availableClaimableDays * _investor.profitPerDay;
+        uint256 profitToclaimInUsd = (profitToClaim * priceInUSD) /USDT_DECIMAL;
+
+       
         _investor.daysClaimed += availableClaimableDays;
 
         //transfer profitToClaim to investor;
-        collateralToken.transferFrom(address(this), msg.sender, profitToClaim);
+        usdtToken.transferFrom(address(this), msg.sender, profitToclaimInUsd);
+        emit Claim(msg.sender,_livestockId,profitToclaimInUsd);
+       // collateralToken.transferFrom(address(this), msg.sender, profitToClaim);
     }
+   
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
    //////  borrowing functions            ///////////////////////////////////////////////////////////////////
    ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // accepted collateral e.g USDT, something different;
-    function depositCollateral(uint256 amount) external payable isverified returns (uint256) {
+    function depositCollateral(uint256 amount, address collateralTokenAddress) external payable isverified returns (uint256) {
         uint256 _collateralIndex = collateralIndex;
         //CollateralStruct storage collateralInfomation = collateral[_collateralIndex ];
         require(amount > 0, "COLLATERAL__Amount_Must_Greater_Than_Zero");
 
-        uint256 value = amount; // calculate the value of collateral -LTV
+        uint256 collateralValueInUsd;
+
+        if (collateralTokenAddress == address(wbtcTokenAddress)) {
+            uint256 wbtcPriceInUsd = getwbtcPriceInUsd(); // Fetch the price of wBTC in USD
+            collateralValueInUsd = (amount * wbtcPriceInUsd) / WBTC_DECIMAL;  // Adjust for price decimals
+        } else if (collateralTokenAddress == address(wethTokenAddress)) {
+            uint256 wethPriceInUsd = getwethPriceInUsd(); // Fetch the price of wETH in USD
+            collateralValueInUsd = (amount * wethPriceInUsd) / WETH_DECIMAL;  // Adjust for price decimals
+        } else{revert("Invalid collateral token");
+    }
+
+       collateralValueInUsd = amount; // calculate the value of collateral -LTV
         collateral[_collateralIndex] = CollateralStruct({
             farmer: msg.sender,
             lockPeriod: block.timestamp,
             isLocked: false,
-            valueOfCollateral: value,
+            valueOfCollateral: collateralValueInUsd,
             borrowed: 0
         });
         //collateral[msg.sender].valueOfCollateral = value;
@@ -466,9 +503,9 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         // collateralInfomation.borrowed = 0;
         collateralIndex++;
        // _safeTransferFrom(msg.sender, address(this), _collateralIndex, value, "");
-        collateralToken.transferFrom(msg.sender, address(this), value);
+        collateralToken.transferFrom(msg.sender, address(this), collateralValueInUsd);
 
-        emit DepositedCollateral(msg.sender, value, _collateralIndex);
+        emit DepositedCollateral(msg.sender, collateralValueInUsd, _collateralIndex);
         return _collateralIndex;
     }
 
@@ -486,24 +523,29 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         //livestockidToBorrowAmount[ _livestockId] += borrowAmount;
 
         //totalSharesMinted - availableShares;
+      
 
-        // Ensure the collateral belongs to the sender
+      
         require(collateralInformation.farmer == msg.sender, "COLLATERAL__Not_The_Owner_Of_Collateral");
 
-        // Ensure the collateral is not already locked
+       
         require(!collateralInformation.isLocked, "COLLATERAL__Collateral_Already_Locked");
-
-        // Calculate maximum borrowable amount based on an LTV ratio
-        uint256 availableAmountToBorrow = collateralInformation.valueOfCollateral - collateralInformation.borrowed;
+      
+        uint256 priceInUsd = getusdtPriceInUsd();
+          uint256 borrowed = collateralInformation.borrowed * priceInUsd / USDT_DECIMAL ;
+          uint256 borrowAmountInUsd = (borrowAmount * priceInUsd) / USDT_DECIMAL;
+       
+          
+        uint256 availableAmountToBorrow = collateralInformation.valueOfCollateral - borrowed;
         //uint256  availableAmountToBorrow = collateralInformation.valueOfCollateral;
-        require(borrowAmount > 0, "COLLATERAL__BorrowAmount_Must_Be_Greater_Than_Zero");
-        require(borrowAmount <= availableAmountToBorrow, "COLLATERAL__BorrowAmount_Exceeds_Avaliablle_Amount_Allowed");
+        require(borrowAmountInUsd > 0, "COLLATERAL__BorrowAmount_Must_Be_Greater_Than_Zero");
+        require(borrowAmountInUsd <= availableAmountToBorrow, "COLLATERAL__BorrowAmount_Exceeds_Avaliablle_Amount_Allowed");
 
         // Update the collateral struct with the borrowed amount
-        collateralInformation.borrowed += borrowAmount;
+        collateralInformation.borrowed += borrowAmountInUsd;
         collateralInformation.isLocked = true;
-        balances[msg.sender] += borrowAmount;
-        emit AmountBorrowed(msg.sender, borrowAmount);
+        balances[msg.sender] += borrowAmountInUsd;
+        emit AmountBorrowed(msg.sender, borrowAmountInUsd);
     }
 
     //use funds for listing
@@ -519,15 +561,18 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         require(_collateral.farmer == msg.sender, "COLLATERAL__OWNER_MUST_BE_SENDER");
         //   uint256 availableAmountToBorrow = _collateral.valueOfCollateral - _collateral.borrowed;
         //  require(availableAmountToBorrow > );
-        require(balances[msg.sender] > animal.periodProfit, "COLLATERAL__NOT_ENOUGH_FUNDS");
+           animal.lockPeriod ;
+        (uint256 periodProfit) = calculateTotalProfit(_livestockId);
+
+        require(balances[msg.sender] > periodProfit, "COLLATERAL__NOT_ENOUGH_FUNDS");
 
         livestockBorrowed[_livestockId] =
-            LivestockBorrow({livestockId: _livestockId, amountBorrowed: animal.periodProfit, paid: false});
-        livestockFunding[_livestockId] += animal.periodProfit;
-        balances[msg.sender] -= animal.periodProfit;
+            LivestockBorrow({livestockId: _livestockId, amountBorrowed: periodProfit, paid: false});
+        livestockFunding[_livestockId] += periodProfit;
+        balances[msg.sender] -= periodProfit;
     }
 
-
+ //@AUDIT ASK KALEEL
     function releaseCollateral(uint256 _collateralIndex) external {
         CollateralStruct memory collateralInfo = collateral[_collateralIndex];
         require(collateralInfo.farmer == msg.sender, "COLLATERAL__NOT_OWNER");
@@ -542,28 +587,43 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     
 
 
-    function repayLoan(uint256 _collateralIndex, uint256 _livestockId, uint256 _amount) external payable {
+    function repayLoan(uint256 _collateralIndex, uint256 _livestockId, uint256 _amount, address tokenAddress) external payable {
         CollateralStruct storage collateralInfo = collateral[_collateralIndex];
         require(collateralInfo.farmer == msg.sender, "COLLATERAL__Not_The_Owner");
-        require(collateralInfo.borrowed > 0 && _amount <= collateralInfo.borrowed, "COLLATERAL__AMOUNT_NOT_IN_RANGE");
+        
+        uint256 _amountInUsd;
+        if (tokenAddress == address(wbtcTokenAddress)) {
+            uint256 wbtcPriceInUsd = getwbtcPriceInUsd(); 
+            _amountInUsd = (_amount * wbtcPriceInUsd) / WBTC_DECIMAL;  
+        } else if (tokenAddress == address(wethTokenAddress)) {
+            uint256 wethPriceInUsd = getwethPriceInUsd();
+            _amountInUsd = (_amount * wethPriceInUsd) / WETH_DECIMAL; 
+        } else if (tokenAddress == address(usdtTokenAddress)){
+            uint256 usdtPriceInUsd = getusdtPriceInUsd();
+            _amountInUsd =(_amount * usdtPriceInUsd ) / USDT_DECIMAL;
+        }
+        
+
+        
+        require(collateralInfo.borrowed > 0 && _amountInUsd  <= collateralInfo.borrowed, "COLLATERAL__AMOUNT_NOT_IN_RANGE");
         uint256 livestockAmountBorrowed = livestockBorrowed[_livestockId].amountBorrowed;
         // require(_amount == livestockAmountBorrowed, "COLATERAL__NOT")
-        if (_amount < livestockAmountBorrowed) {
-            livestockBorrowed[_livestockId].amountBorrowed -= _amount;
+        if ( _amountInUsd < livestockAmountBorrowed) {
+            livestockBorrowed[_livestockId].amountBorrowed -=  _amountInUsd;
         } else if (_amount == livestockAmountBorrowed) {
-            livestockBorrowed[_livestockId].amountBorrowed -= _amount;
+            livestockBorrowed[_livestockId].amountBorrowed -= _amountInUsd;
             livestockBorrowed[_livestockId].paid = true;
         }
 
         collateralInfo.borrowed -= _amount;
-        emit LoanRepaid(_collateralIndex, _livestockId, _amount);
+        emit LoanRepaid(_collateralIndex, _livestockId,  _amountInUsd);
     }
 
     /**
     * used by farmer to withdraw funding from specific livestockId
      */
      // Mapping to track the total amount of funds for each livestockId
-     
+     //@AUDIT ASK KALEEL
     function withdrawListingFunds(uint256 _livestockId) external onlyLivestockOwner( _livestockId){
         Animal storage animal = liveStock[_livestockId];
 
@@ -588,7 +648,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
         // Transfer the withdrawable funds to the farmer
         
-        bool success = usdcToken.transferFrom( address(this), msg.sender,  withdrawableAmount);
+        bool success = usdtToken.transferFrom( address(this), msg.sender,  withdrawableAmount);
         require(success, "MarketPlace__USDC_Transfer_Failed");
         //(bool success, ) = msg.sender.call{value: withdrawableAmount}("");
         //require(success, "MarketPlace___Withdraw_Fund_Failed");
@@ -614,7 +674,20 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     }
 
     //  function withdrawClaim(uint256 _livestockId, address _investorAddress) external {}
+    function getwbtcPriceInUsd() public view returns (uint256) {
+        (, int256 price,,, ) = s_wbtcUsdAggregator.latestRoundData();
+        return uint256(price);
+    }
 
+    function getwethPriceInUsd() public view returns (uint256) {
+        (, int256 price,,, ) = s_wbtcUsdAggregator.latestRoundData();
+        return uint256(price);
+    }
+
+    function getusdtPriceInUsd() public view returns (uint256) {
+        (, int256 price,,, ) = s_wbtcUsdAggregator.latestRoundData();
+        return uint256(price);
+    }
    
 
     
