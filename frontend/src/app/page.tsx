@@ -1,16 +1,108 @@
+"use client"
+// import { dataProtectorCore } from "@/backend/dataProtector";
+// import { value } from "@/backend/oraclefactory";
+import { Button } from "@/components/ui/button";
+import {
+   Dialog,
+   DialogContent,
+   DialogDescription,
+   DialogFooter,
+   DialogHeader,
+   DialogTitle,
+   DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import Image from "next/image";
+// import { useEffect } from "react";
+import { useAccount } from "wagmi";
+// import animalFarmImage from "../../public/images/animalfarm.png"
+import infantCattleImage from "../../public/images/infantCattle.png"
+
+// import { Label } from "@radix-ui/react-label";
+// import { IExecOracleFactory } from '@iexec/iexec-oracle-factory-wrapper';
+// const web3Provider = window.ethereum;
+// // instantiate
+// const factory = new IExecOracleFactory(web3Provider);
+
 
 export default function Home() {
+   const account = useAccount();
+   // const openModal = useAccountModal();
+   // console.log(value);
+   // console.log(dataProtectorCore)
+   // useEffect(() => {
+   //    async function protectData() {
+   //       const protectedData = await dataProtectorCore.protectData({
+   //          data: {
+   //             email: "pixelhubster@gmail.com"
+   //          }
+   //       })
+   //       console.log(protectedData)
+   //    }
+   //    protectData()
+   // })
    return (
       <main className="bg-[#0B0A09] text-white">
 
+
          {/* hero section */}
-         <section className="w-full h-[90vh] lg:h-[80vh] bg-black border-b-solid border-b-[1px] border-b-white flex gap-0 p-10 flex-col lg:flex-row">
-            <div className="w-full lg:w-1/2 h-1/2 lg:h-full bg-red-00 flex flex-col shrink-0 justify-center xl:pl-[10rem]">
-               <h2 className="text-4xl lg:text-[2.5rem] w-1/2 font-extrabold break-words">Lorem Herem Lorem Oolor Done Gone Fill Heal And</h2>
-               <p className="text-[12px] py-5">Lorem ipsum dolor sit amet consectetur adipisicing elit. Magnam at dolore repellat minima asperiores maiores itaque quod ullam sint fuga temporibus quisquam eligendi, necessitatibus, magni distinctio, eum eveniet eius ipsam.</p>
+         <section className="w-full h-[90vh] lg:h-[80vh] bg-[#000814] border-b-solid border-b-[1px] relative border-b-white flex gap-0 p-10 flex-col lg:flex-row">
+            <Image src={infantCattleImage} alt="animal" className="w-full h-full left-0 absolute opacity-50 z-0" />
+            <div className="w-full lg:w-1/2 h-1/2 lg:h-full bg-red-00 flex flex-col shrink-0 justify-center xl:pl-[10rem] z-10">
+               <h2 className="text-4xl lg:text-[2.5rem] w-[80%] font-extrabold font-[neco] tracking-tight leading-[2.6rem] ">Empowering Farmers <br /> Connecting Investors <br /> Unlocking Value in Livestock</h2>
+               <p className="text-[15px] py-5 font-[switzer] leading-6 tracking-wider">Join a decentralized platform where farmers create livestock investment opportunities, and buyers earn profits through fractional ownership of farm assets. Invest, trade, and grow—securely and transparently with blockchain technology.</p>
                <div className="flex gap-2">
-                  <button className="p-1 px-5 bg-blue-400 rounded-full">Register as farmer</button>
-                  <button className="p-1 px-5 bg-blue-00 rounded-full border-blue-400 border-solid border-[1px]">Call Us</button>
+
+                  {/*register as farmer popup */}
+                  <Dialog>
+                     <DialogTrigger asChild>
+                        {/* <button className="p-1 px-5 bg-blue-900 rounded-full ">Register as farmer</button> */}
+                        <Button>Register As Farmer</Button>
+                        {/* <Button variant="outline" className="text-black">Edit Profile</Button> */}
+                     </DialogTrigger>
+                     <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                           <DialogTitle className="text-black">Register Farmer</DialogTitle>
+                           <DialogDescription>
+                              Make changes to your profile here. Click save when youre done.
+                           </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4 text-black">
+                           <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="name" className="text-left">
+                                 Farm name
+                              </Label>
+                              <Input id="farmname" className="col-span-5" placeholder="Noble's Farm" />
+                           </div>
+                           <div className="grid grid-cols-4 items-center gap-2">
+                              <Label htmlFor="username" className="text-left">
+                                 Wallet
+                              </Label>
+                              <Input id="username" value={account.address || ""} onChange={() => { }} placeholder="0x3990sfee...234d" className="col-span-5" />
+                           </div>
+                           <div className="grid grid-cols-4 items-center gap-2">
+                              <Label htmlFor="username" className="text-left">
+                                 DocumentHash
+                              </Label> <br />
+                              <Input id="picture" className="col-span-5 h-[6rem] flex justify-center items-center text-center" type="file" />
+
+                           </div>
+
+
+                        </div>
+                        <DialogFooter>
+                           <Button type="submit" className="w-full">Submit</Button>
+                        </DialogFooter>
+                     </DialogContent>
+                  </Dialog>
+
+
+
+
+
+
+                  {/* <button className="p-1 px-5 bg-blue-00 rounded-xl border-blue-400 border-solid border-[1px]">Call Us</button> */}
                </div>
             </div>
             <div className="w-full lg:w-1/2 h-1/2 lg:h-full bg-red-00 flex flex-row items-end justify-center gap-10 p-5 lg:flex-row">
@@ -21,7 +113,7 @@ export default function Home() {
                      <p className="font-semibold">Sales</p>
                   </div>
                </div>
-               <div className="w-[30vw] lg:w-[15vw] h-[95%] lg:h-[50vh] bg-white/30 rounded-xl drop-shadow-md backdrop:blur-sm shrink-0 p-5">
+               <div className="w-[40vw] lg:w-[20vw] h-[95%] lg:h-[50vh] bg-white/30 rounded-xl drop-shadow-md backdrop:blur-sm shrink-0 p-5">
                   <div className="w-full flex flex-col justify-start gap-2 rounded-xl">
                      {/* <span className="w-6 h-6 rounded-full bg-red-300 flex justify-center items-center">h</span> */}
 

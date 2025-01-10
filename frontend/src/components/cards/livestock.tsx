@@ -7,12 +7,9 @@ import Image from 'next/image'
 import vercel from "../../../public/vercel.svg"
 import {
    Menubar,
-   MenubarCheckboxItem,
    MenubarContent,
    MenubarItem,
    MenubarMenu,
-   MenubarRadioGroup,
-   MenubarRadioItem,
    MenubarSeparator,
    MenubarShortcut,
    MenubarSub,
@@ -35,9 +32,9 @@ const LivestockCard = () => {
                   <MenubarTrigger >
                      <span className='cursor-pointer'>menu</span>
                   </MenubarTrigger>
-                  <MenubarContent>
+                  <MenubarContent className=''>
                      <MenubarItem>
-                         <MenubarShortcut>⌘T</MenubarShortcut>
+                        New Tab <MenubarShortcut>⌘T</MenubarShortcut>
                      </MenubarItem>
                      <MenubarItem>
                         New Window <MenubarShortcut>⌘N</MenubarShortcut>
@@ -48,6 +45,16 @@ const LivestockCard = () => {
                         <MenubarSubTrigger>Farmer</MenubarSubTrigger>
                         <MenubarSubContent>
                            <MenubarItem>Delist</MenubarItem>
+                           <MenubarItem>Add to Private Whitelist</MenubarItem>
+                           <MenubarItem>Remove from Private Whitelist</MenubarItem>
+                           <MenubarItem>Remove from Public Whitelist</MenubarItem>
+                           <MenubarItem>Notes</MenubarItem>
+                        </MenubarSubContent>
+                     </MenubarSub>
+                     <MenubarSub>
+                        <MenubarSubTrigger>Investor</MenubarSubTrigger>
+                        <MenubarSubContent>
+                           <MenubarItem>Purchae Shares</MenubarItem>
                            <MenubarItem></MenubarItem>
                            <MenubarItem>Notes</MenubarItem>
                         </MenubarSubContent>
