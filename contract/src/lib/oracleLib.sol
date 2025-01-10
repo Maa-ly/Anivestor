@@ -65,9 +65,9 @@ import  {AggregatorV3Interface  } from "@chainlink/contracts/src/v0.8/shared/int
         view
         returns (PriceData memory)
     {
-        (, int256 price, , uint256 updatedAt, ) = staleCheckLatestRoundData(chainlinkFeed, timeout);
+        (, int256 price, , , ) = staleCheckLatestRoundData(chainlinkFeed, timeout);
         uint8 decimals = chainlinkFeed.decimals();
-        uint256 lastTImeupdated = updatedAt;
+      //   uint256 lastTImeupdated = updatedAt;
         return PriceData({ price: price, decimals: decimals });
     }
 

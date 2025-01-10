@@ -9,11 +9,11 @@ import {WhiteList} from "./whiteList.sol";
 import {FarmerRegistration} from "./FarmerRegistration.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
-import{OracleLib} from "contract/src/lib/oracleLib.sol";
-import "contract/src/lib/oracleLib.sol";
+import{OracleLib} from "../src/lib/oracleLib.sol";
+import "../src/lib/oracleLib.sol";
 
 
-/** @author Lydia GYamfi Ahenkorah && NObel
+/** @author Lydia GYamfi Ahenkorah && Kaleel
  * @notice This is the marketplace contract, where verified farmers can register
   livestock/animal and create a listing for the livestockId
  *@notice investors can buy shares from the list

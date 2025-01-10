@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
-import "contract/lib/forge-std/src/Script.sol";
-import "contract/src/marketplace.sol";
-import "contract/src/FarmerRegistration.sol";
-import "contract/src/whiteList.sol";
-import "contract/src/WhitelIstDeployer.sol";
-import "contract/script/HelperConfig.sol";
+import "../lib/forge-std/src/Script.sol";
+import "../src/marketplace.sol";
+import "../src/FarmerRegistration.sol";
+import "../src/whiteList.sol";
+import "../src/WhitelIstDeployer.sol";
+import "./HelperConfig.sol";
+
 contract DeployAnivestor is Script {
     address[] public tokenAddresses;
     address[] public priceFeedAddresses;
-    function run() external returns (FarmerRegistration, WhiteList, MarketPlace, HelperConfig, WhiteListDeployer) {
+    function run() external returns (FarmerRegistration, WhiteList, MarketPlace, helperConfig, WhiteListDeployer) {
         
         HelperConfig helperConfig = new HelperConfig(); 
       
