@@ -10,56 +10,46 @@ import "contract/script/HelperConfig.sol";
 
 contract DeployAnivestor is Script {
     address[] public tokenAddresses;
-    address[] public priceFeedAddresses;
+   
 
     function run() external returns (FarmerRegistration, WhiteList, MarketPlace, HelperConfig, WhiteListDeployer) {
-        
+     
         HelperConfig helperConfig = new HelperConfig(); 
 
-      
+    
         (
-            address wethUsdPriceFeed, 
-            address wbtcUsdPriceFeed, 
-            address usdtPriceFeed, 
-            address weth, 
-            address wbtc, 
-            address usdt, 
-            uint256 deployerKey
+            address deployerKey, string  rpcUrl
         ) = helperConfig.activeNetworkConfig();
 
-   
+       
         tokenAddresses = [weth, wbtc, usdt];
-        priceFeedAddresses = [wethUsdPriceFeed, wbtcUsdPriceFeed, usdtPriceFeed];
 
-        
         vm.startBroadcast(deployerKey);
 
-       
+      
         FarmerRegistration farmer = new FarmerRegistration();
         
-        
+ 
         WhiteListDeployer whiteListDeployer = new WhiteListDeployer(address(farmer));
 
-       
+   
         whiteListDeployer.deployWhiteList(); 
 
-     
+      
         address farmerWhiteList = whiteListDeployer.getFarmerWhiteList(msg.sender);
 
         
-        string memory URI = ""; // Use iexec ipfs
+        string memory URI = "https://your-metadata-uri"; // use Iexec ipfsnode
         MarketPlace marketPlace = new MarketPlace(
             URI, 
             farmerWhiteList,  
             address(farmer),  
-            usdt,             
-            wethUsdPriceFeed, 
-            wbtcUsdPriceFeed  
+            usdt              
         );
 
         vm.stopBroadcast();
 
-     
+        
         return (farmer, whiteListDeployer, marketPlace, helperConfig);
     }
 }

@@ -23,11 +23,15 @@ import "contract/src/lib/oracleLib.sol";
  *@notice uses usdc(listing info and pricing) and weth(collateral is deposited)
  */
 contract MarketPlace is ERC1155, IERC1155Receiver {
-    using OracleLib for AggregatorV3Interface;
+    
 
-    AggregatorV3Interface internal s_usdcUsdAggregator; // usdc
-    AggregatorV3Interface internal s_wthEthUsdAggregator; // wthEthereum
-    AggregatorV3Interface internal s_wbtcUsdAggregator; // wbtc
+    /**@notice taking out priceFeed, Noble will add them in frontend 
+     */
+   // using OracleLib for AggregatorV3Interface;
+
+    //AggregatorV3Interface internal s_usdcUsdAggregator; // usdc
+   // AggregatorV3Interface internal s_wthEthUsdAggregator; // wthEthereum
+    //AggregatorV3Interface internal s_wbtcUsdAggregator; // wbtc
 
      //////////////////////////////////////////////////////////////
     ///////////State Viriables/////////////////////////////////////
@@ -172,7 +176,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
 
 
-    constructor(string memory URI, address _whiteListAddress, address _farmerRegistrationAddress, address _tokenAddress, address usdcUsdAggregatorAddress, address wthEthUsdAggregatorAddress, address wbtcUsdAggregatorAddress)
+    constructor(string memory URI, address _whiteListAddress, address _farmerRegistrationAddress, address _tokenAddress)
         ERC1155(URI)
     {
         whiteList = WhiteList(_whiteListAddress);
@@ -181,9 +185,9 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         usdcToken =IERC20(_tokenAddress);
       //  usdcTokenAddress = _tokenAddress;
 
-        s_usdcUsdAggregator = AggregatorV3Interface(usdcUsdAggregatorAddress);
-        s_wthEthUsdAggregator = AggregatorV3Interface(wthEthUsdAggregatorAddress);
-        s_wbtcUsdAggregator =  AggregatorV3Interface(wbtcUsdAggregatorAddress);
+        //s_usdcUsdAggregator = AggregatorV3Interface(usdcUsdAggregatorAddress);
+       // s_wthEthUsdAggregator = AggregatorV3Interface(wthEthUsdAggregatorAddress);
+        //s_wbtcUsdAggregator =  AggregatorV3Interface(wbtcUsdAggregatorAddress);
     }
 
 
