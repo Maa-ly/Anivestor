@@ -10,7 +10,7 @@ import  {AggregatorV3Interface  } from "@chainlink/contracts/src/v0.8/shared/int
  * If a price is stale, functions will revert, and render the --- unusable - this is by design.
  * We want the DSCEngine to freeze if prices become stale.
  *
- * So if the Chainlink network explodes and you have a lot of money locked in the protocol... too bad.
+ * 
  */
  library OracleLib {
     error OracleLib__StalePrice(address feed, uint256 lastUpdated, uint256 timeout);

@@ -112,8 +112,12 @@
 
 ### oracles
 
--acceptedTokens
--priceFeed
+-acceptedTokens -👍
+-priceFeed -👍
+
+### Citea deployment 
+- how to deploy on citea
+- 
 
 ### iExec tools integration
 - read on iexec 

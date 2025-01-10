@@ -25,8 +25,9 @@ import "contract/src/lib/oracleLib.sol";
 contract MarketPlace is ERC1155, IERC1155Receiver {
     using OracleLib for AggregatorV3Interface;
 
-    AggregatorV3Interface internal s_usdcUsdAggregator; // wthEthereum
+    AggregatorV3Interface internal s_usdcUsdAggregator; // usdc
     AggregatorV3Interface internal s_wthEthUsdAggregator; // wthEthereum
+    AggregatorV3Interface internal s_wbtcUsdAggregator; // wbtc
 
      //////////////////////////////////////////////////////////////
     ///////////State Viriables/////////////////////////////////////
@@ -35,7 +36,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     Animal[] public liveStock; /* */
     
     uint256 livestockId = 1; // everything is over.....0 nothing 0 id means nada
-    IERC20 public collateralToken; //collateral wthEth
+    IERC20 public collateralToken; //collateral weth / wbtc
     IERC20 public usdcToken; // base Token for transacting on our platform - usdc
     address public usdcTokenAddress; // USDC token address
 
@@ -171,7 +172,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
 
 
-    constructor(string memory URI, address _whiteListAddress, address _farmerRegistrationAddress, address _tokenAddress, address usdcUsdAggregatorAddress, address wthEthUsdAggregatorAddress)
+    constructor(string memory URI, address _whiteListAddress, address _farmerRegistrationAddress, address _tokenAddress, address usdcUsdAggregatorAddress, address wthEthUsdAggregatorAddress, address wbtcUsdAggregatorAddress)
         ERC1155(URI)
     {
         whiteList = WhiteList(_whiteListAddress);
@@ -182,13 +183,14 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
         s_usdcUsdAggregator = AggregatorV3Interface(usdcUsdAggregatorAddress);
         s_wthEthUsdAggregator = AggregatorV3Interface(wthEthUsdAggregatorAddress);
+        s_wbtcUsdAggregator =  AggregatorV3Interface(wbtcUsdAggregatorAddress);
     }
 
 
 
   
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-   //////  external farmer functions            ///////////////////////////////////////////////////////////////////
+   //////  external farmer functions   ///////////////////////////////////////////////////////////////////
    ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -614,6 +616,11 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
     function getwthEthPriceInUsd() public view returns (uint256) {
         (, int256 price,,, ) = s_wthEthUsdAggregator.latestRoundData();
+        return uint256(price);
+    }
+
+    function getwbtcPriceInUsd() public view returns (uint256) {
+        (, int256 price,,, ) = s_wbtcUsdAggregator.latestRoundData();
         return uint256(price);
     }
 
