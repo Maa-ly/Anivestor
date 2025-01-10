@@ -14,9 +14,7 @@ contract DeployAnivestor is Script {
         HelperConfig helperConfig = new HelperConfig(); 
       
         (
-            address wethUsdPriceFeed, 
-            address wbtcUsdPriceFeed, 
-            address usdtPriceFeed, 
+          
             address weth, 
             address wbtc, 
             address usdt, 

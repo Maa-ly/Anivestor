@@ -163,6 +163,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     event LoanRepaid(uint256 indexed _collateralIndex, uint256 indexed _livestockId, uint256 _amount);
     event ReleaseCollateal(uint256 _collateralIndex, address farmer, uint256 valueOfCollateral);
     event Claim(address indexed investor, uint256 Id, uint256 amount);
+    event FundedProtocol(address indexed funder, uint256 amount);
 
 
     // bytes32 constant STRING_SIZE_SHOULD_BE = 32;
@@ -287,6 +288,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     //2. refund the investors
     //3. delisting fees
     //4. we delist
+    //@audit work on this -- logic 
  
     function deList(uint256 _livestockId) external onlyLivestockOwner(_livestockId) {
         Animal storage animal = liveStock[_livestockId];
@@ -314,6 +316,8 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         emit DeListed(_livestockId, msg.sender);
     }
 
+    /**@notice 
+     */
     // Investor claim refund function (Pull method)
     function Refund(uint256 _livestockId) external {
         uint256 refundAmount = refunds[_livestockId][msg.sender];
@@ -342,20 +346,19 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         Investor memory _investor = investor[_livestockId][msg.sender];
         sharesOwned = _investor.totalShares;
         uint256 profitPerDay = (animal.profitPerDay / animal.totalAmountSharesMinted) * sharesOwned;
-        uint256 priceInUsd = getusdtPriceInUsd();
-        uint256 profitPerDayInUsd = (profitPerDay * priceInUsd) / USDT_DECIMAL;
-        return profitPerDayInUsd;
+
+        return profitPerDay;
     }
 
     function calculateTotalProfit(uint256 _livestockId) internal view returns (uint256) {
         Animal memory animal = liveStock[_livestockId];
         Investor memory _investor = investor[_livestockId][msg.sender];
-        uint256 priceInUsd = getusdtPriceInUsd();
+        
         uint256 profitPerDay = (animal.profitPerDay / animal.totalAmountSharesMinted) * _investor.totalShares;
        uint256  duration = _investor.lockingPeriod;
         uint256 totalProfit = profitPerDay * duration;
-        uint256 totalProfitInUsd = (totalProfit * priceInUsd) / USDT_DECIMAL;
-        return totalProfitInUsd ;
+       
+        return totalProfit ;
     }
 
 
@@ -364,7 +367,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
    ///////////////////////////////////////////////////////////////////////////////////////////////////////
     //buying shares
     //payable funtion
-    function invest(uint256 _livestockId, uint256 sharesToInvest) external payable {
+    function invest(uint256 _livestockId, uint256 sharesToInvest, address tokenAddress ) external payable {
         Animal memory animal = liveStock[_livestockId];
 
         require(animal.listingState == State.IN_STOCK, "MarketPlace__Not_IN_STOCK");
@@ -383,12 +386,21 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
          //  uint256 totalPriceToInvest = sharesToInvest * animal.pricepershare;
          //  totalPriceToInvest = totalPriceToInvest * getUsdcPriceInUsd;
          uint256 totalPriceToInvest = sharesToInvest * animal.pricepershare;
-        uint256 priceInUsd = getusdtPriceInUsd(); 
-        uint256 totalPriceInUsd = (totalPriceToInvest * priceInUsd) / USDT_DECIMAL; 
 
-       require(msg.value == totalPriceInUsd, "MarketPlace__Not_Enough_funds");
-       
+       uint256 _amountInUsd;
 
+
+       if (tokenAddress == address(wbtcTokenAddress)) {
+        uint256 wbtcPriceInUsd = getwbtcPriceInUsd(); 
+        _amountInUsd = (totalPriceToInvest * wbtcPriceInUsd) / WBTC_DECIMAL;  
+    } else if (tokenAddress == address(wethTokenAddress)) {
+        uint256 wethPriceInUsd = getwethPriceInUsd();
+        _amountInUsd = (totalPriceToInvest * wethPriceInUsd) / WETH_DECIMAL; 
+    } else if (tokenAddress == address(usdtTokenAddress)){
+        uint256 usdtPriceInUsd = getusdtPriceInUsd();
+        _amountInUsd =(totalPriceToInvest * usdtPriceInUsd ) / USDT_DECIMAL;
+    }
+    require(msg.value == _amountInUsd, "MarketPlace__Not_Enough_funds");
         // remove the bough shares from the total
         Investor storage _investor = investor[_livestockId][msg.sender];
 
@@ -398,14 +410,12 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         _investor.totalShares += sharesToInvest;
 
         uint256 profitPerDay = (animal.profitPerDay / animal.totalAmountSharesMinted) * sharesToInvest;
-        uint256 profitPerDayInUsd = profitPerDay * priceInUsd;
-        uint256 totalProfit = profitPerDay * animal.lockPeriod;
-        uint256 totalProfitinUsd = totalProfit * priceInUsd;
 
-        _investor.profitPerDay = profitPerDayInUsd;
+        
+        _investor.profitPerDay = profitPerDay;
         _investor.lockingPeriod = block.timestamp + animal.lockPeriod;
         _investor.timeTracking = block.timestamp; //ly will come up with something better
-        _investor.totalProfit = totalProfitinUsd;
+        _investor.totalProfit = profitPerDay * animal.lockPeriod;
         // Ensure the user has approved enough USDC for the contract
         require(usdtToken.allowance(msg.sender, address(this)) >= msg.value, "MarketPlace__Allowance_Insufficient");
         bool success = usdtToken.transferFrom(msg.sender, address(this), msg.value);
@@ -515,37 +525,25 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     function borrow( /*uint256 _livestockId,*/ uint256 _collateralIndex, uint256 borrowAmount) external {
         // borrowAmount < (valueOfColleral - borrowed)
         CollateralStruct memory collateralInformation = collateral[_collateralIndex];
-        // require(collateral[msg.sender].valueOfCollateral > 0, "COLLATERAL__Not_Enough_Value");
-        //require(borrowAmount < (_collateral.valueOfCollateral - _collateral.borrowed), "COLLATERAL__BorrowAmount_Exceeded_Value");
-
-        // collateral[msg.sender].borrowed += borrowAmount;
-        //livestock -> livestockProfit;
-        //livestockidToBorrowAmount[ _livestockId] += borrowAmount;
-
-        //totalSharesMinted - availableShares;
-      
-
+    
       
         require(collateralInformation.farmer == msg.sender, "COLLATERAL__Not_The_Owner_Of_Collateral");
 
        
         require(!collateralInformation.isLocked, "COLLATERAL__Collateral_Already_Locked");
       
-        uint256 priceInUsd = getusdtPriceInUsd();
-          uint256 borrowed = collateralInformation.borrowed * priceInUsd / USDT_DECIMAL ;
-          uint256 borrowAmountInUsd = (borrowAmount * priceInUsd) / USDT_DECIMAL;
-       
+    
           
-        uint256 availableAmountToBorrow = collateralInformation.valueOfCollateral - borrowed;
+        uint256 availableAmountToBorrow = collateralInformation.valueOfCollateral -  collateralInformation.borrowed;
         //uint256  availableAmountToBorrow = collateralInformation.valueOfCollateral;
-        require(borrowAmountInUsd > 0, "COLLATERAL__BorrowAmount_Must_Be_Greater_Than_Zero");
-        require(borrowAmountInUsd <= availableAmountToBorrow, "COLLATERAL__BorrowAmount_Exceeds_Avaliablle_Amount_Allowed");
+        require(borrowAmount> 0, "COLLATERAL__BorrowAmount_Must_Be_Greater_Than_Zero");
+        require(borrowAmount <= availableAmountToBorrow, "COLLATERAL__BorrowAmount_Exceeds_Avaliablle_Amount_Allowed");
 
         // Update the collateral struct with the borrowed amount
-        collateralInformation.borrowed += borrowAmountInUsd;
+        collateralInformation.borrowed += borrowAmount;
         collateralInformation.isLocked = true;
-        balances[msg.sender] += borrowAmountInUsd;
-        emit AmountBorrowed(msg.sender, borrowAmountInUsd);
+        balances[msg.sender] += borrowAmount;
+        emit AmountBorrowed(msg.sender, borrowAmount);
     }
 
     //use funds for listing
@@ -561,18 +559,17 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         require(_collateral.farmer == msg.sender, "COLLATERAL__OWNER_MUST_BE_SENDER");
         //   uint256 availableAmountToBorrow = _collateral.valueOfCollateral - _collateral.borrowed;
         //  require(availableAmountToBorrow > );
-           animal.lockPeriod ;
-        (uint256 periodProfit) = calculateTotalProfit(_livestockId);
-
-        require(balances[msg.sender] > periodProfit, "COLLATERAL__NOT_ENOUGH_FUNDS");
+           //animal.lockPeriod ;
+    
+        require(balances[msg.sender] >= animal.periodProfit , "COLLATERAL__NOT_ENOUGH_FUNDS");
 
         livestockBorrowed[_livestockId] =
-            LivestockBorrow({livestockId: _livestockId, amountBorrowed: periodProfit, paid: false});
-        livestockFunding[_livestockId] += periodProfit;
-        balances[msg.sender] -= periodProfit;
+            LivestockBorrow({livestockId: _livestockId, amountBorrowed: animal.periodProfit , paid: false});
+        livestockFunding[_livestockId] += animal.periodProfit ;
+        balances[msg.sender] -= animal.periodProfit ;
     }
 
- //@AUDIT ASK KALEEL
+ 
     function releaseCollateral(uint256 _collateralIndex) external {
         CollateralStruct memory collateralInfo = collateral[_collateralIndex];
         require(collateralInfo.farmer == msg.sender, "COLLATERAL__NOT_OWNER");
@@ -623,7 +620,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     * used by farmer to withdraw funding from specific livestockId
      */
      // Mapping to track the total amount of funds for each livestockId
-     //@AUDIT ASK KALEEL
+
     function withdrawListingFunds(uint256 _livestockId) external onlyLivestockOwner( _livestockId){
         Animal storage animal = liveStock[_livestockId];
 
@@ -633,6 +630,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         require(availableFunds > 0, "MarketPlace___No_Funds_Available");
 
         // Check for any remaining refunds to investors
+        
         uint256 totalRefunds = 0;
         for (address investorAddr = address(0); investorAddr != address(0); investorAddr) {
             uint256 refundAmount = refunds[_livestockId][investorAddr];
@@ -659,6 +657,27 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     }
     
 
+    /**@notice this function is used to fund the protocol
+     * donors can help raise funds for the protocol through this function
+     */
+  function fundProtocol(uint256 _amount, address tokenAddress) external payable {
+    uint256 _amountInUsd;
+    if (tokenAddress == address(wbtcTokenAddress)) {
+        uint256 wbtcPriceInUsd = getwbtcPriceInUsd(); 
+        _amountInUsd = (_amount * wbtcPriceInUsd) / WBTC_DECIMAL;  
+    } else if (tokenAddress == address(wethTokenAddress)) {
+        uint256 wethPriceInUsd = getwethPriceInUsd();
+        _amountInUsd = (_amount * wethPriceInUsd) / WETH_DECIMAL; 
+    } else if (tokenAddress == address(usdtTokenAddress)){
+        uint256 usdtPriceInUsd = getusdtPriceInUsd();
+        _amountInUsd =(_amount * usdtPriceInUsd ) / USDT_DECIMAL;
+    }
+    require (_amountInUsd > 0 ,"MARKETPLACE__AMOUNT_TOO_SMALL");
+    collateralToken.transferFrom(msg.sender, address(this), _amountInUsd);
+    usdtToken.transferFrom(msg.sender, address(this), _amountInUsd);
+
+  }
+ 
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////
    //////  getter functions            ///////////////////////////////////////////////////////////////////

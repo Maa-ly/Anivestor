@@ -34,7 +34,7 @@ import  {AggregatorV3Interface  } from "@chainlink/contracts/src/v0.8/shared/int
         view
         returns (uint80, int256, uint256, uint256, uint80)
     {
-        (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) =
+        (uint80 roundId, int256 price, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) =
             chainlinkFeed.latestRoundData();
 
         if (updatedAt == 0 || answeredInRound < roundId) {
@@ -47,11 +47,11 @@ import  {AggregatorV3Interface  } from "@chainlink/contracts/src/v0.8/shared/int
             revert OracleLib__StalePrice(address(chainlinkFeed), updatedAt, timeout);
         }
 
-        if (answer <= 0) {
-            revert OracleLib__InvalidPrice(address(chainlinkFeed), answer);
+        if (price <= 0) {
+            revert OracleLib__InvalidPrice(address(chainlinkFeed), price);
         }
 
-        return (roundId, answer, startedAt, updatedAt, answeredInRound);
+        return (roundId, price, startedAt, updatedAt, answeredInRound);
     }
 
     /**
@@ -65,33 +65,13 @@ import  {AggregatorV3Interface  } from "@chainlink/contracts/src/v0.8/shared/int
         view
         returns (PriceData memory)
     {
-        (, int256 answer, , uint256 updatedAt, ) = staleCheckLatestRoundData(chainlinkFeed, timeout);
+        (, int256 price, , uint256 updatedAt, ) = staleCheckLatestRoundData(chainlinkFeed, timeout);
         uint8 decimals = chainlinkFeed.decimals();
         uint256 lastTImeupdated = updatedAt;
-        return PriceData({ price: answer, decimals: decimals });
+        return PriceData({ price: price, decimals: decimals });
     }
 
-    /**
-     * @dev Normalizes a price to a fixed number of decimals (e.g., 18 decimals).
-     * @param priceData The price data structure containing the price and its decimals.
-     * @param targetDecimals The target number of decimals.
-     * @return normalizedPrice The normalized price.
-     */
-    function normalizePrice(PriceData memory priceData, uint8 targetDecimals)
-        public
-        pure
-        returns (int256 normalizedPrice)
-    {
-        if (priceData.decimals < targetDecimals) {
-            normalizedPrice = priceData.price * int256(10 ** (targetDecimals - priceData.decimals));
-        } else if (priceData.decimals > targetDecimals) {
-            normalizedPrice = priceData.price / int256(10 ** (priceData.decimals - targetDecimals));
-        } else {
-            normalizedPrice = priceData.price;
-        }
-    }
 
-   
     
 
    
