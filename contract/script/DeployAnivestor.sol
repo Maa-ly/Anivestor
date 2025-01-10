@@ -39,7 +39,7 @@ contract DeployAnivestor is Script {
         address farmerWhiteList = whiteListDeployer.getFarmerWhiteList(msg.sender);
 
         
-        string memory URI = "https://your-metadata-uri"; // use Iexec ipfsnode
+        string memory URI = ""; // use Iexec ipfsnode
         MarketPlace marketPlace = new MarketPlace(
             URI, 
             farmerWhiteList,  

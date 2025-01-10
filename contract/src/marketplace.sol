@@ -8,9 +8,9 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import {WhiteList} from "./whiteList.sol";
 import {FarmerRegistration} from "./FarmerRegistration.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+//import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 //import{OracleLib} from "contract/src/lib/oracleLib.sol";
-import "contract/src/lib/oracleLib.sol";
+//import "contract/src/lib/oracleLib.sol";
 
 
 /** @author Lydia GYamfi Ahenkorah && NObel
@@ -326,7 +326,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     
     //  function spotListing() external {}
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-   //////  interna functions            ///////////////////////////////////////////////////////////////////
+   //////  internal functions            ///////////////////////////////////////////////////////////////////
    ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     function calculateProfitPerDay(uint256 _livestockId, uint256 sharesOwned) internal view returns (uint256) {
@@ -345,6 +345,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         uint256 totalProfit = profitPerDay * duration;
         return totalProfit;
     }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
    //////  exteranl investor functions            ///////////////////////////////////////////////////////////////////
@@ -586,7 +587,8 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
             livestockFunds[_livestockId] = 0;
 
         // Transfer the withdrawable funds to the farmer
-        bool success = usdcToken.transferFrom(msg.sender, address(this), msg.value);
+        
+        bool success = usdcToken.transferFrom( address(this), msg.sender,  withdrawableAmount);
         require(success, "MarketPlace__USDC_Transfer_Failed");
         //(bool success, ) = msg.sender.call{value: withdrawableAmount}("");
         //require(success, "MarketPlace___Withdraw_Fund_Failed");
@@ -595,7 +597,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         // Emit event for the withdrawal
         emit Withdrawn(_livestockId, msg.sender, withdrawableAmount);
     }
-    }
+    
 
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -613,20 +615,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
     //  function withdrawClaim(uint256 _livestockId, address _investorAddress) external {}
 
-    function getUsdcPriceInUsd() public view returns (uint256) {
-        (, int256 price,,, ) = s_usdcUsdAggregator.latestRoundData();
-        return uint256(price);
-    }
-
-    function getwthEthPriceInUsd() public view returns (uint256) {
-        (, int256 price,,, ) = s_wthEthUsdAggregator.latestRoundData();
-        return uint256(price);
-    }
-
-    function getwbtcPriceInUsd() public view returns (uint256) {
-        (, int256 price,,, ) = s_wbtcUsdAggregator.latestRoundData();
-        return uint256(price);
-    }
+   
 
     
 
@@ -652,4 +641,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         uint256[] calldata values,
         bytes calldata data
     ) external override returns (bytes4) {}
+
+ //funding the contract 
+ 
 }
