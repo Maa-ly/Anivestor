@@ -18,6 +18,7 @@ import Image from "next/image";
 import { useAccount } from "wagmi";
 // import animalFarmImage from "../../public/images/animalfarm.png"
 import infantCattleImage from "../../public/images/infantCattle.png"
+// import { web3mail } from "@/backend/web3mail";
 
 // import { Label } from "@radix-ui/react-label";
 // import { IExecOracleFactory } from '@iexec/iexec-oracle-factory-wrapper';
@@ -43,12 +44,12 @@ export default function Home() {
    //    protectData()
    // })
    return (
-      <main className="bg-[#0B0A09] text-white">
+      <main className="bg-[#000814] text-white">
 
 
          {/* hero section */}
-         <section className="w-full h-[90vh] lg:h-[80vh] bg-[#000814] border-b-solid border-b-[1px] relative border-b-white flex gap-0 p-10 flex-col lg:flex-row">
-            <Image src={infantCattleImage} alt="animal" className="w-full h-full left-0 absolute opacity-50 z-0" />
+         <section className="w-full h-[90vh] lg:h-[80vh] bg-[#000814] flex gap-0 p-10 flex-col lg:flex-row">
+            <Image src={infantCattleImage} alt="animal" className="w-[60vw] xl:w-[40vw] xl:h-[40vh] h-[60vh] right-5 bottom-[10rem] absolute opacity-70 z-0" />
             <div className="w-full lg:w-1/2 h-1/2 lg:h-full bg-red-00 flex flex-col shrink-0 justify-center xl:pl-[10rem] z-10">
                <h2 className="text-4xl lg:text-[2.5rem] w-[80%] font-extrabold font-[neco] tracking-tight leading-[2.6rem] ">Empowering Farmers <br /> Connecting Investors <br /> Unlocking Value in Livestock</h2>
                <p className="text-[15px] py-5 font-[switzer] leading-6 tracking-wider">Join a decentralized platform where farmers create livestock investment opportunities, and buyers earn profits through fractional ownership of farm assets. Invest, trade, and grow—securely and transparently with blockchain technology.</p>
@@ -134,7 +135,7 @@ export default function Home() {
 
 
          {/* statistics */}
-         <section className="w-full bg-gray-900 flex justify-center items-center gap-4 py-20">
+         <section className="w-full flex justify-center items-center gap-4 py-20">
 
             <div className="lg:w-[15rem] lg:h-[10rem] w-[10rem] h-[8rem] bg-white/40 shadow-sm backdrop-blur-md rounded-xl flex flex-col justify-center items-center ">
                <h1 className="font-bold text-4xl">12M +</h1>
