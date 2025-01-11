@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-
-import  {AggregatorV3Interface  } from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 /*
  * @title OracleLib
  * @author Lydia Gyamfi Ahenkorah && Nobel
@@ -12,7 +11,8 @@ import  {AggregatorV3Interface  } from "@chainlink/contracts/src/v0.8/shared/int
  *
  * 
  */
- library OracleLib {
+
+library OracleLib {
     error OracleLib__StalePrice(address feed, uint256 lastUpdated, uint256 timeout);
     error OracleLib__InvalidPrice(address feed, int256 price);
     error OracleLib__InsufficientFeeds();
@@ -43,7 +43,6 @@ import  {AggregatorV3Interface  } from "@chainlink/contracts/src/v0.8/shared/int
 
         uint256 secondsSince = block.timestamp - updatedAt;
         if (secondsSince > timeout) {
-            
             revert OracleLib__StalePrice(address(chainlinkFeed), updatedAt, timeout);
         }
 
@@ -65,16 +64,12 @@ import  {AggregatorV3Interface  } from "@chainlink/contracts/src/v0.8/shared/int
         view
         returns (PriceData memory)
     {
-        (, int256 price, , , ) = staleCheckLatestRoundData(chainlinkFeed, timeout);
+        (, int256 price,,,) = staleCheckLatestRoundData(chainlinkFeed, timeout);
         uint8 decimals = chainlinkFeed.decimals();
-      //   uint256 lastTImeupdated = updatedAt;
-        return PriceData({ price: price, decimals: decimals });
+        //   uint256 lastTImeupdated = updatedAt;
+        return PriceData({price: price, decimals: decimals});
     }
 
-
-    
-
-   
     function getTimeout(AggregatorV3Interface /* chainlinkFeed */ ) public pure returns (uint256) {
         return 3 hours; // Default timeout
     }
