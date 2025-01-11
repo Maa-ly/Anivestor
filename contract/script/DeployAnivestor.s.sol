@@ -8,6 +8,7 @@ import "../src/whiteList.sol";
 import "../src/WhitelIstDeployer.sol";
 import "../src/Borrow.sol";
 import "./HelperConfig.s.sol";
+import "../src/Borrow.sol";
 
 contract DeployAnivestor is Script {
     address[] public tokenAddresses;
@@ -17,7 +18,7 @@ contract DeployAnivestor is Script {
     address public wbtc = 0x8d0c9d1c17aE5e40ffF9bE350f57840E9E66Cd93;
     address public usdt = 0xC6F0cacFddAFd1Ed72b6806a0E1A5a94BD612038;
 
-    function run() external returns (FarmerRegistration, WhiteListDeployer, MarketPlace, HelperConfig) {
+    function run() external returns (FarmerRegistration, WhiteListDeployer, MarketPlace,Borrow, HelperConfig) {
         HelperConfig helperConfig = new HelperConfig();
 
         (
@@ -43,11 +44,13 @@ contract DeployAnivestor is Script {
 
         string memory URI = ""; // Use iexec ipfs
         MarketPlace marketPlace = new MarketPlace(URI, farmerWhiteList, address(farmer), usdt);
+      
+        Borrow borrow = new Borrow(farmerWhiteList, address(farmer), usdt, wbtc,usdtPriceFeed,wbtcUsdPriceFeed, wethUsdPriceFeed);
         // wethUsdPriceFeed, wbtcUsdPriceFeed
         // wbtc/usd right?
 
         vm.stopBroadcast();
 
-        return (farmer, whiteListDeployer, marketPlace, helperConfig);
+        return (farmer, whiteListDeployer, marketPlace, borrow, helperConfig);
     }
 }
