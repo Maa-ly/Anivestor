@@ -183,14 +183,15 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
 
 
-    constructor(string memory URI, address _whiteListAddress, address _farmerRegistrationAddress, address _tokenAddress, address usdtUsdAggregatorAddress, address wethEthUsdAggregatorAddress, address wbtcUsdAggregatorAddress)
+    constructor(string memory URI, address _whiteListAddress, address _farmerRegistrationAddress, address _tokenAddress, address wbtc, address usdtUsdAggregatorAddress, address wethEthUsdAggregatorAddress, address wbtcUsdAggregatorAddress)
         ERC1155(URI)
     {
         whiteList = WhiteList(_whiteListAddress);
         farmer = FarmerRegistration(_farmerRegistrationAddress);
-        collateralToken = IERC20(_tokenAddress);
         usdtToken =IERC20(_tokenAddress);
-      //  usdcTokenAddress = _tokenAddress;
+        collateralToken = IERC20(wbtc);
+                       
+    
 
         s_usdtUsdAggregator = AggregatorV3Interface(usdtUsdAggregatorAddress);
        s_wethEthUsdAggregator = AggregatorV3Interface(wethEthUsdAggregatorAddress);

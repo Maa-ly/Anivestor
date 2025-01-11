@@ -12,20 +12,20 @@ contract DeployAnivestor is Script {
     address[] public priceFeedAddresses;
  
     
-    address public weth = ;
-    address public wbtc = ;
-    address public usdt = ;
+    address public weth = 0xca5b8bE68ad7C298b2Eaa8f6B25D05721D151648;
+    address public wbtc = 0x8d0c9d1c17aE5e40ffF9bE350f57840E9E66Cd93;
+    address public usdt = 0xC6F0cacFddAFd1Ed72b6806a0E1A5a94BD612038;
 
     function run() external returns (FarmerRegistration,  WhiteListDeployer, MarketPlace,  HelperConfig ) {
         
         HelperConfig helperConfig = new HelperConfig(); 
       
         (
-          
             address wethUsdPriceFeed , 
             address wbtcUsdPriceFeed, 
             address usdtPriceFeed, 
-            uint256 deployerKey
+            uint256 deployerKey,
+            string memory rpcUrl
         ) = helperConfig.activeNetworkConfig();
    
         tokenAddresses = [weth, wbtc, usdt];
@@ -48,8 +48,12 @@ contract DeployAnivestor is Script {
             URI, 
             farmerWhiteList,  
             address(farmer),  
-            tokenAddresses,
-            priceFeedAddresses  // wbtc/usd right?
+            usdt,
+            weth,
+            usdtPriceFeed ,
+            wethUsdPriceFeed,
+            wbtcUsdPriceFeed
+            // wbtc/usd right?
         );
         vm.stopBroadcast();
      
