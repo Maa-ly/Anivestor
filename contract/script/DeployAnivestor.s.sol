@@ -5,25 +5,32 @@ import "../src/marketplace.sol";
 import "../src/FarmerRegistration.sol";
 import "../src/whiteList.sol";
 import "../src/WhitelIstDeployer.sol";
-import "./HelperConfig.sol";
+import "./HelperConfig.s.sol";
 
 contract DeployAnivestor is Script {
     address[] public tokenAddresses;
     address[] public priceFeedAddresses;
-    function run() external returns (FarmerRegistration, WhiteList, MarketPlace, helperConfig, WhiteListDeployer) {
+ 
+    
+    address public weth = ;
+    address public wbtc = ;
+    address public usdt = ;
+
+    function run() external returns (FarmerRegistration,  WhiteListDeployer, MarketPlace,  HelperConfig ) {
         
         HelperConfig helperConfig = new HelperConfig(); 
       
         (
           
-            address weth, 
-            address wbtc, 
-            address usdt, 
+            address wethUsdPriceFeed , 
+            address wbtcUsdPriceFeed, 
+            address usdtPriceFeed, 
             uint256 deployerKey
         ) = helperConfig.activeNetworkConfig();
    
         tokenAddresses = [weth, wbtc, usdt];
         priceFeedAddresses = [wethUsdPriceFeed, wbtcUsdPriceFeed, usdtPriceFeed];
+     
         
         vm.startBroadcast(deployerKey);
        
@@ -41,9 +48,8 @@ contract DeployAnivestor is Script {
             URI, 
             farmerWhiteList,  
             address(farmer),  
-            usdt,             
-            wethUsdPriceFeed, 
-            wbtcUsdPriceFeed  
+            tokenAddresses,
+            priceFeedAddresses  // wbtc/usd right?
         );
         vm.stopBroadcast();
      
