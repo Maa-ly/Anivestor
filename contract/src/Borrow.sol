@@ -10,10 +10,7 @@ import {IWhiteList} from "./interfaces/IWhitelist.sol";
 import {IMarketPlace} from "./interfaces/IMarketplace.sol";
 
 contract Borrow {
-    // using OracleLib for IChainlinkAggregator;
 
-    IChainlinkAggregator internal s_usdtUsdAggregator; // usdc
-    IChainlinkAggregator internal s_wethEthUsdAggregator; // wthEthereum
     IChainlinkAggregator internal s_wbtcUsdAggregator; // wbtc
 
     uint256 public constant USDT_DECIMAL = 1e6;
@@ -29,7 +26,6 @@ contract Borrow {
     address public usdtTokenAddress; // USDT token address
     address public wethTokenAddress;
     address public wbtcTokenAddress;
-    mapping(uint256 => mapping(address => Investor)) public investor;
 
     mapping(address => uint256) public balances;
     // uint256 is livestockId
@@ -53,36 +49,11 @@ contract Borrow {
         uint256 borrowed;
     }
 
-    struct Investor {
-        uint256 totalShares;
-        uint256 timeTracking;
-        uint256 lockingPeriod;
-        uint256 totalProfit; // ((profitPerDay * lockingPeriod) / totalAmountSharesMinted ) * totalShares;
-        uint256 profitPerDay; // profitPerDay / totalAmountSharesMinted * totalShares;
-        uint256 daysClaimed;
-    }
-
     struct LivestockBorrow {
         uint256 livestockId;
         uint256 amountBorrowed;
         bool paid;
     }
-
-    //  struct Animal {
-    //      address farmer;
-    //      string animalName;
-    //      string breed;
-    //      // price Per Share 4000, 1 at 3$;
-    //      uint256 pricepershare; // 3$ for 1 share; totalSharesInUSDT= 3 * totalAmountSharesMinted;
-    //      uint256 profitPerDay; // for 4000 mintedTokens, 12$;
-    //      uint256 periodProfit; // lockPeriod * profitPerDay
-    //      uint256 lockPeriod;
-    //      uint256 totalAmountSharesMinted; /*TotalSharessharesAvaliable */
-    //      uint256 avaliableShare; /*TotalSharessharesAvaliable - avaliableShare*/
-    //      uint256 listingTime;
-    //      State listingState;
-    //      WhiteListType whiteListType;
-    //  }
 
     enum State {
         SOLDOUT,
@@ -106,8 +77,6 @@ contract Borrow {
         address _farmerRegistrationAddress,
         address _tokenAddress,
         address wbtc,
-        address usdtUsdAggregatorAddress,
-        address wethEthUsdAggregatorAddress,
         address wbtcUsdAggregatorAddress
     ) {
         whiteList = IWhiteList(_whiteListAddress);
@@ -115,8 +84,8 @@ contract Borrow {
         usdtToken = IERC20(_tokenAddress);
         collateralToken = IERC20(wbtc);
 
-        s_usdtUsdAggregator = IChainlinkAggregator(usdtUsdAggregatorAddress);
-        s_wethEthUsdAggregator = IChainlinkAggregator(wethEthUsdAggregatorAddress);
+      //   s_usdtUsdAggregator = IChainlinkAggregator(usdtUsdAggregatorAddress);
+      //   s_wethEthUsdAggregator = IChainlinkAggregator(wethEthUsdAggregatorAddress);
         s_wbtcUsdAggregator = IChainlinkAggregator(wbtcUsdAggregatorAddress);
     }
 
@@ -199,7 +168,7 @@ contract Borrow {
     {
         require(livestockFunding[_livestockId] == 0, "COLLATERAL__MUST_BE_ZERO");
         //   Animal storage animal = liveStock[_livestockId];
-        IMarketPlace.Animal memory animal = marketplace.getAnimal(_livestockId);
+        IMarketPlace.Animal memory animal = marketplace.getListingDetails(_livestockId);
         CollateralStruct memory _collateral = collateral[_collateralIndex];
         require(animal.listingState == IMarketPlace.State.IN_STOCK, "MARKETPLACE__List_Not_In_Stock");
         require(_collateral.farmer == msg.sender, "COLLATERAL__OWNER_MUST_BE_SENDER");
@@ -256,7 +225,7 @@ contract Borrow {
 
     function withdrawListingFunds(uint256 _livestockId) external onlyLivestockOwner(_livestockId) {
         //   Animal storage animal = liveStock[_livestockId];
-        IMarketPlace.Animal memory animal = marketplace.getAnimal(_livestockId);
+        IMarketPlace.Animal memory animal = marketplace.getListingDetails(_livestockId);
 
         require(animal.listingState == IMarketPlace.State.IN_STOCK, "MarketPlace___Not_Listed");
         uint256 availableFunds = livestockFunds[_livestockId];

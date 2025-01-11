@@ -3,8 +3,6 @@
 pragma solidity 0.8.26;
 
 contract WhiteList {
-    //  mapping(address => bool) public publicWhitelist;
-    //  mapping(address => bool) public privateWhitelist;
     mapping(uint256 => WhiteListStruct) public publicWhitelist;
     mapping(uint256 => WhiteListStruct) public privateWhitelist;
 

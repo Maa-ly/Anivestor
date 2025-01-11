@@ -2,27 +2,33 @@
 pragma solidity 0.8.26;
 
 interface IWhiteList {
-    // Events
+    struct WhiteListStruct {
+        address owner;
+        address[] contacts;
+    }
+
     event AddressAdded(address indexed Address);
     event AddressRemoved(address indexed Address);
 
-    // Public Variables
-    function publicWhitelist(address Add) external view returns (bool);
-    function privateWhitelist(address Add) external view returns (bool);
+    function createPublicWhitelist(uint256 _livestockId, address _owner) external;
+
+    function createPrivateWhitelist(uint256 _livestockId, address _owner) external;
+
+    function addToPublicWhiteList(uint256 _livestockId, address Add) external;
+
+    function addToPrivateWhiteList(uint256 _livestockId, address Add) external;
+
+    function isPublicWhiteList(uint256 _livestockId, address Add) external view returns (bool);
+
+    function isPrivateWhiteList(uint256 _livestockId, address Add) external view returns (bool);
+
+    function removeFromPublicWhitelist(uint256 _livestockId, address Add) external;
+
+    function removeFromPrivateWhitelist(uint256 _livestockId, address Add) external;
+
     function owner() external view returns (address);
 
-    // Functions
-    function addToPublicWhiteList(address Add) external;
-
-    function verifyWhiteList(address Add) external view returns (bool);
-
-    function isPublicWhiteList(address Add) external view returns (bool);
-
-    function isPrivateWhiteList(address Add) external view returns (bool);
-
-    function addToPrivateWhitelist(address Add) external;
-
-    function removeFromPublicWhitelist(address Add) external;
-
-    function removeFromPrivateWhitelist(address Add) external;
+    function publicWhitelist(uint256 _livestockId) external view returns (WhiteListStruct memory);
+    
+    function privateWhitelist(uint256 _livestockId) external view returns (WhiteListStruct memory);
 }

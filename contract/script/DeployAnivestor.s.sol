@@ -6,6 +6,7 @@ import "../src/marketplace.sol";
 import "../src/FarmerRegistration.sol";
 import "../src/whiteList.sol";
 import "../src/WhitelIstDeployer.sol";
+import "../src/Borrow.sol";
 import "./HelperConfig.s.sol";
 
 contract DeployAnivestor is Script {
