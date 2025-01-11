@@ -197,18 +197,6 @@ contract Borrow {
         CollateralStruct storage collateralInfo = collateral[_collateralIndex];
         require(collateralInfo.farmer == msg.sender, "COLLATERAL__Not_The_Owner");
 
-        // uint256 wbtcPriceInUsd = getwbtcPriceInUsd();
-        // uint256 _amountInUsd = (_amount * wbtcPriceInUsd) / WBTC_DECIMAL;
-        //   if (tokenAddress == address(wbtcTokenAddress)) {
-        //       uint256 wbtcPriceInUsd = getwbtcPriceInUsd();
-        //       _amountInUsd = (_amount * wbtcPriceInUsd) / WBTC_DECIMAL;
-        //   } else if (tokenAddress == address(wethTokenAddress)) {
-        //       uint256 wethPriceInUsd = getwethPriceInUsd();
-        //       _amountInUsd = (_amount * wethPriceInUsd) / WETH_DECIMAL;
-        //   } else if (tokenAddress == address(usdtTokenAddress)) {
-        //       uint256 usdtPriceInUsd = getusdtPriceInUsd();
-        //       _amountInUsd = (_amount * usdtPriceInUsd) / USDT_DECIMAL;
-        //   }
 
         require(collateralInfo.borrowed > 0 && _amount <= collateralInfo.borrowed, "COLLATERAL__AMOUNT_NOT_IN_RANGE");
         uint256 livestockAmountBorrowed = livestockBorrowed[_livestockId].amountBorrowed;
@@ -248,17 +236,6 @@ contract Borrow {
     }
 
     function fundProtocol(uint256 _amount) external {
-        //   uint256 _amountInUsd;
-        //   if (tokenAddress == address(wbtcTokenAddress)) {
-        //       uint256 wbtcPriceInUsd = getwbtcPriceInUsd();
-        //       _amountInUsd = (_amount * wbtcPriceInUsd) / WBTC_DECIMAL;
-        //   } else if (tokenAddress == address(wethTokenAddress)) {
-        //       uint256 wethPriceInUsd = getwethPriceInUsd();
-        //       _amountInUsd = (_amount * wethPriceInUsd) / WETH_DECIMAL;
-        //   } else if (tokenAddress == address(usdtTokenAddress)) {
-        //       uint256 usdtPriceInUsd = getusdtPriceInUsd();
-        //       _amountInUsd = (_amount * usdtPriceInUsd) / USDT_DECIMAL;
-        //   }
         require(_amount > 0, "MARKETPLACE__AMOUNT_TOO_SMALL");
         //   collateralToken.transferFrom(msg.sender, address(this), _amountInUsd);
         usdtToken.transferFrom(msg.sender, address(this), _amount);
@@ -278,14 +255,4 @@ contract Borrow {
         (, int256 price,,,) = s_wbtcUsdAggregator.latestRoundData();
         return uint256(price);
     }
-
-    //  function getwethPriceInUsd() public view returns (uint256) {
-    //      (, int256 price,,,) = s_wbtcUsdAggregator.latestRoundData();
-    //      return uint256(price);
-    //  }
-
-    //  function getusdtPriceInUsd() public view returns (uint256) {
-    //      (, int256 price,,,) = s_wbtcUsdAggregator.latestRoundData();
-    //      return uint256(price);
-    //  }
 }

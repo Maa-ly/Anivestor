@@ -5,13 +5,9 @@ import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-import {WhiteList} from "./whiteList.sol";
-import {FarmerRegistration} from "./FarmerRegistration.sol";
+import {IWhiteList} from "./interfaces/IWhitelist.sol";
+import {IFarmerRegistration} from "./interfaces/IFarmerRegistration.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-// import {IChainlinkAggregator} from "@chainlink/contracts/src/v0.8/shared/interfaces/IChainlinkAggregator.sol";
-// import {IChainlinkAggregator} from "../src/lib/IChainlinkAggregator.sol";
-import {OracleLib} from "../src/lib/oracleLib.sol";
-import "../src/lib/oracleLib.sol";
 
 /**
  * @author Lydia GYamfi Ahenkorah && Kaleel
@@ -24,17 +20,6 @@ import "../src/lib/oracleLib.sol";
  * @notice uses usdc(listing info and pricing) and weth(collateral is deposited)
  */
 contract MarketPlace is ERC1155, IERC1155Receiver {
-    //  using OracleLib for IChainlinkAggregator;
-
-    //  IChainlinkAggregator internal s_ethUsdAggregator; // wthEthereum
-    //  IChainlinkAggregator internal s_wbtcUsdAggregator; // wbtc
-
-    //////////////////////////////////////////////////////////////
-    ///////////State Viriables/////////////////////////////////////
-    //////////////////////////////////////////////////////////////
-    uint256 public constant USDT_DECIMAL = 1e6;
-    uint256 public constant ETH_DECIMAL = 1e18;
-    uint256 public constant WBTC_DECIMAL = 1e8;
 
     CollateralStruct[] public collateral;
     Animal[] public liveStock; /* */
@@ -42,13 +27,11 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     uint256 livestockId = 1; // everything is over.....0 nothing 0 id means nada
     IERC20 public usdtToken; // base Token for transacting on our platform - usdc
     address public usdtTokenAddress; // USDT token address
-    address public wethTokenAddress;
-    address public wbtcTokenAddress;
 
     uint256 public collateralIndex = 1;
 
-    FarmerRegistration public farmer;
-    WhiteList public whiteList;
+    IFarmerRegistration public farmer;
+    IWhiteList public whiteList;
 
     ////////////////////////////////////////////////////////
     /////////// Enums /////////////////////////////////////
@@ -115,7 +98,6 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         uint256 profitPerDay;
         uint256 daysClaimed;
     }
-    //available Days to Claim
 
     struct Animal {
         address farmer;
@@ -161,16 +143,11 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         address _farmerRegistrationAddress,
         address _usdtTokenAddress
     )
-        //   address ethUsdAggregatorAddress,
-        //   address wbtcUsdAggregatorAddress
         ERC1155(URI)
     {
-        whiteList = WhiteList(_whiteListAddress);
-        farmer = FarmerRegistration(_farmerRegistrationAddress);
+        whiteList = IWhiteList(_whiteListAddress);
+        farmer = IFarmerRegistration(_farmerRegistrationAddress);
         usdtToken = IERC20(_usdtTokenAddress);
-
-        //   s_ethUsdAggregator = IChainlinkAggregator(ethUsdAggregatorAddress);
-        //   s_wbtcUsdAggregator = IChainlinkAggregator(wbtcUsdAggregatorAddress);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,73 +217,6 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         emit ListCreated(_livestockId, msg.sender, _lockPeriod, _whiteListType);
     }
 
-    //@audit work on this -- logic
-
-    function deList(uint256 _livestockId) external onlyLivestockOwner(_livestockId) {
-        Animal storage animal = liveStock[_livestockId];
-        require(animal.listingState == State.IN_STOCK, "MarketPlace___Not_Listed");
-
-        if (animal.avaliableShare < animal.totalAmountSharesMinted) {
-            uint256 soldShares = animal.totalAmountSharesMinted - animal.avaliableShare;
-            uint256 refundPerShare = animal.pricepershare * soldShares;
-
-            for (address investorAddr = address(0); investorAddr != address(0); investorAddr) {
-                if (investor[_livestockId][investorAddr].totalShares > 0) {
-                    uint256 sharesOwned = investor[_livestockId][investorAddr].totalShares;
-                    uint256 refundAmount = (sharesOwned * refundPerShare);
-
-                    refunds[_livestockId][investorAddr] = refundAmount;
-                }
-            }
-        }
-
-        liveStock[_livestockId].listingState = State.UNLISTED;
-
-        emit DeListed(_livestockId, msg.sender);
-    }
-
-    /**
-     * @notice
-     */
-    function Refund(uint256 _livestockId) external {
-        uint256 refundAmount = refunds[_livestockId][msg.sender];
-        require(refundAmount > 0, "MarketPlace___No_Refund_Available");
-        refunds[_livestockId][msg.sender] = 0;
-        bool success = usdtToken.transferFrom(address(this), msg.sender, refundAmount);
-        require(success, "MarketPlace___Refund_Transfer_Failed");
-
-        emit Refunded(_livestockId, msg.sender, refundAmount);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //////  internal functions            ///////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    function calculateProfitPerDay(uint256 _livestockId, uint256 sharesOwned) internal view returns (uint256) {
-        Animal memory animal = liveStock[_livestockId];
-        Investor memory _investor = investor[_livestockId][msg.sender];
-        sharesOwned = _investor.totalShares;
-        uint256 profitPerDay = (animal.profitPerDay / animal.totalAmountSharesMinted) * sharesOwned;
-
-        return profitPerDay;
-    }
-
-    function calculateTotalProfit(uint256 _livestockId) internal view returns (uint256) {
-        Animal memory animal = liveStock[_livestockId];
-        Investor memory _investor = investor[_livestockId][msg.sender];
-
-        uint256 profitPerDay = (animal.profitPerDay / animal.totalAmountSharesMinted) * _investor.totalShares;
-        uint256 duration = _investor.lockingPeriod;
-        uint256 totalProfit = profitPerDay * duration;
-
-        return totalProfit;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //////  exteranl investor functions            ///////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////
-    //buying shares
-    //payable funtion
     function invest(uint256 _livestockId, uint256 sharesToInvest) external {
         Animal memory animal = liveStock[_livestockId];
 
@@ -320,19 +230,6 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         require(animal.avaliableShare >= sharesToInvest, "MarketPlace__Not_Enough_Shares_TO_Invest");
         uint256 totalPriceToInvest = sharesToInvest * animal.pricepershare;
 
-        //   uint256 _amountInUsd = (totalPriceToInvest * ethPriceInUsd) / ETH_DECIMAL ;
-
-        //   if (tokenAddress == address(wbtcTokenAddress)) {
-        //       uint256 wbtcPriceInUsd = getwbtcPriceInUsd();
-        //       _amountInUsd = (totalPriceToInvest * wbtcPriceInUsd) / WBTC_DECIMAL;
-        //   } else if (tokenAddress == address(wethTokenAddress)) {
-        //       uint256 wethPriceInUsd = getwethPriceInUsd();
-        //       _amountInUsd = (totalPriceToInvest * wethPriceInUsd) / ETH_DECIMAL;
-        //   } else if (tokenAddress == address(usdtTokenAddress)) {
-        //       uint256 usdtPriceInUsd = getusdtPriceInUsd();
-        //       _amountInUsd = (totalPriceToInvest * usdtPriceInUsd) / USDT_DECIMAL;
-        //   }
-        //   require(msg.value == _amountInUsd, "MarketPlace__Not_Enough_funds");
         Investor storage _investor = investor[_livestockId][msg.sender];
 
         liveStock[_livestockId].avaliableShare -= sharesToInvest;
