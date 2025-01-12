@@ -21,6 +21,10 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
  */
 contract MarketPlace is ERC1155, IERC1155Receiver {
 
+     ////////////////////////////////////////////////////////
+    /////////// STATE VARIABLES ////////////////////////////
+    //////////////////////////////////////////////////////
+
     CollateralStruct[] public collateral;
     Animal[] public liveStock; /* */
 
@@ -32,36 +36,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
 
     IFarmerRegistration public farmer;
     IWhiteList public whiteList;
-
-    ////////////////////////////////////////////////////////
-    /////////// Enums /////////////////////////////////////
-    //////////////////////////////////////////////////////
-    /**
-     * @notice the state of the listing
-     * @SOLDOUT : listing is out of stock
-     * IN-STOCK : IN the market and avaliable
-     * UNLISTED : Removed form the listing
-     */
-    enum State {
-        SOLDOUT,
-        IN_STOCK,
-        /// during the delisting we check if the list is instck if yes, then yooou cannot delist.....
-        UNLISTED
-    }
-
-    /**
-     * Type of whitelist
-     * PUBLIC : anyone can join
-     * PRIvATE : only verified farmer can add investor
-     */
-    enum WhiteListType {
-        PUBLIC,
-        PRIVATE
-    }
-
-    //////////////////////////////////////////////////////////
-    /////mapping///////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////
+  
     //mapping(uint256 => Animal) public liveStock;
     mapping(uint256 => mapping(address => Investor)) public investor;
 
@@ -72,6 +47,24 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     mapping(uint256 => uint256) public livestockFunding;
 
     mapping(uint256 => uint256) public livestockFunds;
+    
+
+      ////////////////////////////////////////////////////////
+    /////////// EVENTS /////////////////////////////////////
+    //////////////////////////////////////////////////////
+    event AnimalRegistered(
+        uint256 indexed id, address indexed famer, string animalName, uint256 totalAmountSharesMinted
+    );
+    event Refunded(uint256 livestockId, address indexed investor, uint256 amount);
+    event ListCreated(uint256 indexed id, address farmer, uint256 lockPeriod, WhiteListType whiteListType);
+    event Invested(uint256 indexed _id, address investor, uint256 amount, uint256 profitPerDay);
+    event TransferedOwnership(uint256 indexed _id, address indexed farmer, address newOwner, uint256 totalTokens);
+    event DeListed(uint256 livestockId, address indexed owner);
+    event Claim(address indexed investor, uint256 Id, uint256 amount);
+
+    
+   
+   
     ////////////////////////////////////////////////////////
     /////////// structs /////////////////////////////////////
     //////////////////////////////////////////////////////
@@ -114,18 +107,35 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         WhiteListType whiteListType;
     }
 
-    //////Event//////////////
-    event AnimalRegistered(
-        uint256 indexed id, address indexed famer, string animalName, uint256 totalAmountSharesMinted
-    );
-    event Refunded(uint256 livestockId, address indexed investor, uint256 amount);
-    event ListCreated(uint256 indexed id, address farmer, uint256 lockPeriod, WhiteListType whiteListType);
-    event Invested(uint256 indexed _id, address investor, uint256 amount, uint256 profitPerDay);
-    event TransferedOwnership(uint256 indexed _id, address indexed farmer, address newOwner, uint256 totalTokens);
-    event DeListed(uint256 livestockId, address indexed owner);
-    event Claim(address indexed investor, uint256 Id, uint256 amount);
 
-    ///////Modifier////////////
+     /**
+     * @notice the state of the listing
+     * @SOLDOUT : listing is out of stock
+     * IN-STOCK : IN the market and avaliable
+     * UNLISTED : Removed form the listing
+     */
+     enum State {
+        SOLDOUT,
+        IN_STOCK,
+        /// during the delisting we check if the list is instck if yes, then yooou cannot delist.....
+        UNLISTED
+    }
+
+    /**
+     * Type of whitelist
+     * PUBLIC : anyone can join
+     * PRIvATE : only verified farmer can add investor
+     */
+    enum WhiteListType {
+        PUBLIC,
+        PRIVATE
+    }
+
+
+      ////////////////////////////////////////////////////////
+    /////////// MODIFIERS ///////////////////////////////////
+    //////////////////////////////////////////////////////
+  
 
     modifier onlyLivestockOwner(uint256 _livestockId) {
         require(msg.sender == liveStock[_livestockId].farmer, "MARKETPLACE___NOT_OWNER_OF_ID");
@@ -136,6 +146,10 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         require(farmer.isVerified(msg.sender), "WhiteListDeployer___Farmer_not_verified");
         _;
     }
+
+    /*//////////////////////////////////////////////////////////////
+                           FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
 
     constructor(
         string memory URI,
@@ -153,6 +167,15 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     //////  external farmer functions   ///////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+ * @notice Registers an animal (livestock) on the platform with the given details.
+ * @dev Only verified farmers can register animals.
+ * @param _animalName The name of the animal.
+ * @param _breed The breed of the animal.
+ * @param _totalAmountSharesMinted The total number of shares minted for this animal.
+ * @return _livestockId The unique ID assigned to the registered animal.
+ */
 
     function registerAnimal(string memory _animalName, string memory _breed, uint256 _totalAmountSharesMinted)
         external
@@ -179,6 +202,17 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         emit AnimalRegistered(_livestockId, msg.sender, _animalName, _totalAmountSharesMinted);
         return _livestockId;
     }
+
+    /**
+ * @notice Creates a listing for a registered animal, specifying the price per share, profit per day, and lock period.
+ * @dev Only verified farmers who own the animal can create listings.
+ * @param _livestockId The ID of the animal being listed.
+ * @param _pricepershare The price for each share of the livestock.
+ * @param _profitPerDay The profit per day for each share.
+ * @param _lockPeriod The period for which the shares are locked.
+ * @param _periodProfit The total profit for the entire lock period.
+ * @param _whiteListType The type of whitelist for the listing (Public or Private).
+ */
 
     function createListing(
         uint256 _livestockId,
@@ -217,6 +251,12 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         emit ListCreated(_livestockId, msg.sender, _lockPeriod, _whiteListType);
     }
 
+    /**
+ * @notice Allows an investor to invest in a specific livestock listing by purchasing shares.
+ * @dev Only valid investors (based on whitelist) can invest, and the required amount of shares must be available.
+ * @param _livestockId The ID of the livestock listing.
+ * @param sharesToInvest The number of shares the investor wants to buy.
+ */
     function invest(uint256 _livestockId, uint256 sharesToInvest) external {
         Animal memory animal = liveStock[_livestockId];
 
@@ -252,6 +292,13 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         emit Invested(_livestockId, msg.sender, sharesToInvest, profitPerDay);
     }
 
+    /**
+ * @notice Transfers ownership of a livestock listing to a new farmer.
+ * @dev Only the current owner (farmer) of the listing can transfer ownership.
+ * @param _livestockId The ID of the livestock listing.
+ * @param newOwner The address of the new owner (farmer).
+ */
+
     function transferListOwnerShip(uint256 _livestockId, address newOwner) external onlyLivestockOwner(_livestockId) {
         Animal memory animal = liveStock[_livestockId];
         require(newOwner != address(0), "Marketplace__Invalid_Address");
@@ -262,6 +309,11 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         emit TransferedOwnership(_livestockId, animal.farmer, newOwner, animal.totalAmountSharesMinted);
     }
 
+    /**
+ * @notice Allows an investor to claim their profit based on the shares they've invested in a livestock listing.
+ * @dev The investor can claim the profit that has accumulated since their last claim.
+ * @param _livestockId The ID of the livestock listing.
+ */
     function claim(uint256 _livestockId) external {
         Investor storage _investor = investor[_livestockId][msg.sender];
         uint256 daysPassed = (_investor.timeTracking - block.timestamp) / 24 * 60 * 60; // convert to days
@@ -273,6 +325,10 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         emit Claim(msg.sender, _livestockId, profitToClaim);
     }
 
+
+    /*//////////////////////////////////////////////////////////////
+                           GETTER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
     function getListings() external view returns (Animal[] memory) {
         return liveStock;
     }
