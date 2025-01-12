@@ -33,7 +33,8 @@ contract FarmerRegistration is Ownable {
 
     function registerFarmer(string memory name, string memory documentHash) external {
         require(farmer[msg.sender].farmerAddress == address(0), "FarmerRegistration__Farmer_Already_Registered");
-        farmer[msg.sender] = Farmer({farmerAddress: msg.sender, name: name, documentHash: documentHash, verified: false});
+        farmer[msg.sender] =
+            Farmer({farmerAddress: msg.sender, name: name, documentHash: documentHash, verified: false});
         this.verifyFarmer(msg.sender);
         emit FarmerRegistered(msg.sender, name);
     }

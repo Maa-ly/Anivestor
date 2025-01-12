@@ -34,8 +34,7 @@ contract DeployAnivestor is Script {
 
         //   whiteListDeployer.deployWhiteList();
 
-      //   address farmerWhiteList = whiteListDeployer.getFarmerWhiteList(msg.sender);
-
+        //   address farmerWhiteList = whiteListDeployer.getFarmerWhiteList(msg.sender);
 
         string memory URI = ""; // Use iexec ipfs
 

@@ -16,7 +16,8 @@ contract Borrow {
     uint256 public constant WETH_DECIMAL = 1e18;
     uint256 public constant WBTC_DECIMAL = 1e8;
 
-    CollateralStruct[] public collateral;
+    //  CollateralStruct[] public collateral;
+
     IMarketPlace.Animal[] public liveStock; /* */
     IMarketPlace public marketplace;
 
@@ -33,6 +34,7 @@ contract Borrow {
     mapping(uint256 => uint256) public livestockFunding;
 
     mapping(uint256 => uint256) public livestockFunds;
+    mapping(uint256 => CollateralStruct) public collateral;
 
     uint256 public collateralIndex = 1;
 
