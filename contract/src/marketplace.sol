@@ -20,7 +20,6 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
  * @notice uses usdc(listing info and pricing) and weth(collateral is deposited)
  */
 contract MarketPlace is ERC1155, IERC1155Receiver {
-
     CollateralStruct[] public collateral;
     Animal[] public liveStock; /* */
 
@@ -142,9 +141,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         address _whiteListAddress,
         address _farmerRegistrationAddress,
         address _usdtTokenAddress
-    )
-        ERC1155(URI)
-    {
+    ) ERC1155(URI) {
         whiteList = IWhiteList(_whiteListAddress);
         farmer = IFarmerRegistration(_farmerRegistrationAddress);
         usdtToken = IERC20(_usdtTokenAddress);

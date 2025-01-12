@@ -15,7 +15,7 @@ contract DeployAnivestor is Script {
     address public wbtc = 0x8d0c9d1c17aE5e40ffF9bE350f57840E9E66Cd93;
     address public usdt = 0xC6F0cacFddAFd1Ed72b6806a0E1A5a94BD612038;
 
-    function run() external returns (FarmerRegistration, WhiteListDeployer, MarketPlace,Borrow, HelperConfig) {
+    function run() external returns (FarmerRegistration, WhiteListDeployer, MarketPlace, Borrow, HelperConfig) {
         HelperConfig helperConfig = new HelperConfig();
 
         (
@@ -23,8 +23,9 @@ contract DeployAnivestor is Script {
             address wbtcUsdPriceFeed,
             // address usdtPriceFeed,
             uint256 deployerKey
-            // string memory rpcUrl
-        ) = helperConfig.activeNetworkConfig();
+        ) =
+        // string memory rpcUrl
+         helperConfig.activeNetworkConfig();
 
         vm.startBroadcast(deployerKey);
 
@@ -37,15 +38,15 @@ contract DeployAnivestor is Script {
         address farmerWhiteList = whiteListDeployer.getFarmerWhiteList(msg.sender);
 
         string memory URI = ""; // Use iexec ipfs
-        
-      //           address _whiteListAddress,
-      //   address _farmerRegistrationAddress,
-      //   address _tokenAddress,
-      //   address wbtc,
-      //   address wbtcUsdAggregatorAddress
+
+        //           address _whiteListAddress,
+        //   address _farmerRegistrationAddress,
+        //   address _tokenAddress,
+        //   address wbtc,
+        //   address wbtcUsdAggregatorAddress
         MarketPlace marketPlace = new MarketPlace(URI, farmerWhiteList, address(farmer), usdt);
-      
-        Borrow borrow = new Borrow(farmerWhiteList, address(farmer), usdt, wbtc,wbtcUsdPriceFeed);
+
+        Borrow borrow = new Borrow(farmerWhiteList, address(farmer), usdt, wbtc, wbtcUsdPriceFeed);
         // wethUsdPriceFeed, wbtcUsdPriceFeed
         // wbtc/usd right?
 
