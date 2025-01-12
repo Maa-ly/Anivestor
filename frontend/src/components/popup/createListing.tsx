@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
-import React, { useCallback, useState } from 'react'
+import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
-import { useAccount, useCall } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { marketplaceContract, switchChain } from '@/backend/web3'
 import CustomBtn from '../cards/customBtn'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
@@ -27,7 +28,7 @@ const CreateListing = () => {
    })
    const today = new Date();
    const formattedDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format
-   const [date, setDate] = React.useState<DateRange | undefined>({
+   const [date, setDate] = React.useState<DateRange | undefined | any>({
       from: new Date(formattedDate),
       to: addDays(new Date(formattedDate), 3),
    })

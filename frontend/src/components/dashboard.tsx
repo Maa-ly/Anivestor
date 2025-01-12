@@ -17,6 +17,7 @@ const Dashboard = ({ account }: { account: any }) => {
    useEffect(() => {
       async function fetch() {
          const collateralValue = await borrowContract.methods.getFarmerBorrowedAmount(0);
+         console.log(collateralValue)
       }
       fetch()
    })

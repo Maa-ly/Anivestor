@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
@@ -9,7 +10,6 @@ import { useAccount } from 'wagmi'
 import { farmerContract, switchChain } from '@/backend/web3'
 import { dataProtectorCore } from '@/backend/dataProtector'
 import { createArrayBufferFromFile } from '@iexec/dataprotector';
-import { web3mail } from '@/backend/web3mail'
 
 const RegisterFarmer = () => {
    const account = useAccount()

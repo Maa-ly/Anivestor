@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import React, { useState } from 'react'
@@ -5,14 +6,13 @@ import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import Image from 'next/image'
-import vercel from "../../../public/vercel.svg"
 import {
    Menubar,
    MenubarContent,
    MenubarItem,
    MenubarMenu,
    MenubarSeparator,
-   MenubarShortcut,
+   // MenubarShortcut,
    MenubarSub,
    MenubarSubContent,
    MenubarSubTrigger,
@@ -56,7 +56,8 @@ const LivestockCard = ({ animal, index }: { animal: Animal, index: number }) => 
          switchChain(5115)
          const inPublicWhitelist = await whitelistContract.methods.isPublicWhiteList(value.livestockId, account.address).send({ from: account.address });
          if (inPublicWhitelist) {
-            let res = await whitelistContract.methods.addToPublicWhiteList(value.livestockId, account.address).send({ from: account.address });
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const res = await whitelistContract.methods.addToPublicWhiteList(value.livestockId, account.address).send({ from: account.address });
             let result = await marketplaceContract.methods.invest(value.livestockId, value.pay).send({ from: account.address });
             result = {
                ...result,
@@ -70,8 +71,8 @@ const LivestockCard = ({ animal, index }: { animal: Animal, index: number }) => 
       }
    }
    return (
-      <div className='flex relative flex-col bg-slate-300 text-black rounded-xl overflow-hidden shadow-md shrink-0'>
-         <Image src={vercel} alt="image" width={200} height={200} className='w-full h-[8rem] bg-blue-300' />
+      <div className='flex relative flex-col bg-white text-black rounded-xl overflow-hidden shadow-md shrink-0'>
+         <Image src={`/images/${index}.png`} alt="image" width={200} height={200} className='w-full h-[8rem] bg-blue-300' />
          <div className='absolute top-2 right-2 flex flex-col'>
             {/* <div className='w-[8rem] h-[3rem] bg-white absolute top-8 right-1'></div> */}
             <Menubar className='bg-transparent p-1'>
@@ -81,12 +82,12 @@ const LivestockCard = ({ animal, index }: { animal: Animal, index: number }) => 
                   </MenubarTrigger>
                   <MenubarContent className=''>
                      <MenubarItem>
-                        New Tab <MenubarShortcut>⌘T</MenubarShortcut>
+                        Claim
                      </MenubarItem>
                      <MenubarItem>
-                        New Window <MenubarShortcut>⌘N</MenubarShortcut>
+                        Invest
                      </MenubarItem>
-                     <MenubarItem disabled>New Incognito Window</MenubarItem>
+                     {/* <MenubarItem disabled>New Incognito Window</MenubarItem> */}
                      <MenubarSeparator />
                      <MenubarSub>
                         <MenubarSubTrigger>Farmer</MenubarSubTrigger>
@@ -95,20 +96,21 @@ const LivestockCard = ({ animal, index }: { animal: Animal, index: number }) => 
                            <MenubarItem>Add to Private Whitelist</MenubarItem>
                            <MenubarItem>Remove from Private Whitelist</MenubarItem>
                            <MenubarItem>Remove from Public Whitelist</MenubarItem>
-                           <MenubarItem>Notes</MenubarItem>
+                           {/* <MenubarItem>Notes</MenubarItem> */}
                         </MenubarSubContent>
                      </MenubarSub>
                      <MenubarSub>
                         <MenubarSubTrigger>Investor</MenubarSubTrigger>
                         <MenubarSubContent>
                            <MenubarItem>Purchae Shares</MenubarItem>
-                           <MenubarItem></MenubarItem>
-                           <MenubarItem>Notes</MenubarItem>
+                           <MenubarItem>Claim</MenubarItem>
+                           {/* <MenubarItem>Notes</MenubarItem> */}
                         </MenubarSubContent>
                      </MenubarSub>
                      <MenubarSeparator />
                      <MenubarItem>
-                        Print... <MenubarShortcut>⌘P</MenubarShortcut>
+                        Delist
+                        {/* <MenubarShortcut>⌘P</MenubarShortcut> */}
                      </MenubarItem>
                   </MenubarContent>
                </MenubarMenu>

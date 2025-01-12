@@ -1,30 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Web3 from "web3"
 import farmerAbi from "./contract/FarmerRegistration.json"
 import borrowAbi from "./contract/Borrow.json"
 import marketplaceAbi from "./contract/Marketplace.json"
 import whitelistAbi from "./contract/whitelist.json"
-
-
-
-// == Return ==
-// 0: contract FarmerRegistration 0x797d3c182aA3d4d64959acAB8Ff7D7fbDDEa0fa4
-// 1: contract WhiteListDeployer 0x9d260b53e841bC429FF806d6dcD1f541467BcF82
-// 2: contract MarketPlace 0xa8Da6A7B3fD77d7DA0C131b139e37219e6C76A39
-// 3: contract Borrow 0x053Fb8211C393100F8f5E900DD9662433ed3fD92
-// 4: contract HelperConfig 0x5aAdFB43eF8dAF45DD80F4676345b7676f1D70e3
-
-// contract FarmerRegistration 0xf5b9319fdaa178B24852D2A58697581278F2B14D
-// 1: contract WhiteListDeployer 0xB3C3F492ED6BA8CD0079c537d3F10041382CDfe8
-// 2: contract MarketPlace 0xdE97dF6E101E17ebbC901444AB8AA1e6fFE9F18B
-// 3: contract Borrow 0x02AA0EAcb0Fab7d9864E1ddC2f3800d40DC646d6
-// 4: contract HelperConfig 0x5aAdFB43eF8dAF45DD80F4676345b7676f1D70e3
-// == Return ==
-// 0: contract FarmerRegistration 0xa6dDCBE4ea5B8fD62A738595b4ba2D47Df824eFB
-// 1: contract WhiteList 0x131235209d0948E4C9DC72d48A1E5d64eea43bb5
-// 2: contract MarketPlace 0xd04b419f8b82C4d47a3b410FF242e89953f9Ac2a
-// 3: contract Borrow 0xf453B5B73828B54Bf60E4FBFa87a99f0E799221E
-// 4: contract HelperConfig 0x5aAdFB43eF8dAF45DD80F4676345b7676f1D70e3
-
 
 // == Return ==
 // 0: contract FarmerRegistration 0x0199f6AA5e1eCd7E7cf73434208Bd1b0a5F0C79F
@@ -60,16 +39,7 @@ if (typeof window !== "undefined" && typeof window.ethereum !== "undefined") {
    whitelistContract = new web3.eth.Contract(whitelistAbi, whitelistContractAddress)
 
 }
-
-// const provider = new Web3.providers.HttpProvider("https://rpc.testnet.citrea.xyz" as string);
-// web3 = new Web3(provider);
-// // web3 = new Web3(window.ethereum);
-// farmerContract = new web3.eth.Contract(farmerAbi, farmerContractAddress)
-// borrowContract = new web3.eth.Contract(borrowAbi, borrowContractAddress)
-// marketplaceContract = new web3.eth.Contract(marketplaceAbi, marketplaceContractAddress)
-// whitelistContract = new web3.eth.Contract(whitelistAbi, whitelistContract)
-
-const switchChain = async (chainId) => {
+const switchChain = async (chainId: number) => {
    try {
       // Convert chainId to hexadecimal
       const chainIdHex = `0x${Number(chainId).toString(16)}`
@@ -80,7 +50,7 @@ const switchChain = async (chainId) => {
          params: [{ chainId: chainIdHex }],
       })
 
-   } catch (error) {
+   } catch (error: any) {
       // Error code 4902 means the chain hasn't been added to MetaMask
       if (error.code === 4902) {
          try {

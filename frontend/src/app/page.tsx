@@ -1,24 +1,11 @@
 "use client"
-// import { dataProtectorCore } from "@/backend/dataProtector";
-// import { value } from "@/backend/oraclefactory";
 import Image from "next/image";
 import infantCattleImage from "../../public/images/infantCattle.png"
 import RegisterFarmer from "@/components/popup/registerFarmer";
 import { useEffect } from "react";
 import { web3mail } from "@/backend/web3mail";
-// import { web3mail } from "@/backend/web3mail";
-
-// import { Label } from "@radix-ui/react-label";
-// import { IExecOracleFactory } from '@iexec/iexec-oracle-factory-wrapper';
-// const web3Provider = window.ethereum;
-// // instantiate
-// const factory = new IExecOracleFactory(web3Provider);
-
 
 export default function Home() {
-   // const openModal = useAccountModal();
-   // console.log(value);
-   // console.log(dataProtectorCore)
    useEffect(() => {
       async function protectData() {
          const res = await web3mail.fetchMyContacts()
@@ -39,12 +26,6 @@ export default function Home() {
                <p className="text-[15px] py-5 font-[switzer] leading-6 tracking-wider">Join a decentralized platform where farmers create livestock investment opportunities, and buyers earn profits through fractional ownership of farm assets. Invest, trade, and grow—securely and transparently with blockchain technology.</p>
                <div className="flex gap-2">
                   <RegisterFarmer />
-
-
-
-
-
-
                   {/* <button className="p-1 px-5 bg-blue-00 rounded-xl border-blue-400 border-solid border-[1px]">Call Us</button> */}
                </div>
             </div>

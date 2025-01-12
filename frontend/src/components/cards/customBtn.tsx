@@ -2,8 +2,8 @@
 import React, { useState } from 'react'
 import { Button } from '../ui/button'
 import { useToast } from "../../hooks/use-toast"
-import { ToastAction } from "../ui/toast"
 import { useAccount } from 'wagmi'
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 const CustomBtn = ({ btn, handleClick }: { btn?: string, handleClick?: Function }) => {
    const [loading, setLoading] = useState(false)
    const { toast } = useToast()
