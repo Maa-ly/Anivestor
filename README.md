@@ -6,10 +6,10 @@
     <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=900&size=39&pause=1000&color=80F75A&background=FFE9F800&center=true&width=435&lines=ANIVESTOR" alt="Typing SVG" />
   </a>
 </div>
+![Screenshot__70_-removebg-preview](https://github.com/user-attachments/assets/4ab6f541-7b7d-4653-981a-43ef8d316e49)
 
 
 
-![Uploading Screenshot__70_-removebg-preview.png…]()
 
 
 
