@@ -209,8 +209,8 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         whiteList.createPublicWhitelist(_livestockId, msg.sender);
         whiteList.createPrivateWhitelist(_livestockId, msg.sender);
 
-        setApprovalForAll(address(this), true);
-        _safeTransferFrom(msg.sender, address(this), _livestockId, animal.totalAmountSharesMinted, "");
+      //   setApprovalForAll(address(this), true);
+      //   _safeTransferFrom(msg.sender, address(this), _livestockId, animal.totalAmountSharesMinted, "");
         emit ListCreated(_livestockId, msg.sender, _lockPeriod, _whiteListType);
     }
 

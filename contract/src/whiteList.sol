@@ -26,11 +26,17 @@ contract WhiteList {
     }
 
     function createPublicWhitelist(uint256 _livestockId, address _owner) external {
-        publicWhitelist[_livestockId].owner = _owner;
+        publicWhitelist[_livestockId] = WhiteListStruct({
+         owner: _owner,
+         contacts: new address[](0)
+        });
     }
 
     function createPrivateWhitelist(uint256 _livestockId, address _owner) external {
-        privateWhitelist[_livestockId].owner = _owner;
+        privateWhitelist[_livestockId] = WhiteListStruct({
+         owner: _owner,
+         contacts: new address[](0)
+        });
     }
 
     function addToPublicWhiteList(uint256 _livestockId, address Add) external {
