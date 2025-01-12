@@ -21,9 +21,9 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
  */
 contract MarketPlace is ERC1155, IERC1155Receiver {
     CollateralStruct[] public collateral;
-    Animal[] public liveStock; /* */
+    Animal[] public liveStock; 
 
-    uint256 livestockId = 1; // everything is over.....0 nothing 0 id means nada
+    uint256 livestockId; // everything is over.....0 nothing 0 id means nada
     IERC20 public usdtToken; // base Token for transacting on our platform - usdc
     address public usdtTokenAddress; // USDT token address
 
@@ -157,7 +157,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         returns (uint256)
     {
         uint256 _livestockId = livestockId;
-        liveStock[_livestockId] = Animal({
+        liveStock.push(Animal({
             farmer: msg.sender,
             animalName: _animalName,
             breed: _breed,
@@ -170,7 +170,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
             listingTime: 0,
             listingState: State.UNLISTED,
             whiteListType: WhiteListType.PUBLIC
-        });
+        }));
         livestockId++;
         _mint(msg.sender, _livestockId, _totalAmountSharesMinted, "");
         emit AnimalRegistered(_livestockId, msg.sender, _animalName, _totalAmountSharesMinted);
