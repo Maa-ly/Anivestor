@@ -52,10 +52,7 @@ interface IMarketPlace {
     }
 
     event AnimalRegistered(
-        uint256 indexed id, 
-        address indexed famer, 
-        string animalName, 
-        uint256 totalAmountSharesMinted
+        uint256 indexed id, address indexed famer, string animalName, uint256 totalAmountSharesMinted
     );
     event Refunded(uint256 livestockId, address indexed investor, uint256 amount);
     event ListCreated(uint256 indexed id, address farmer, uint256 lockPeriod, WhiteListType whiteListType);
@@ -64,11 +61,9 @@ interface IMarketPlace {
     event DeListed(uint256 livestockId, address indexed owner);
     event Claim(address indexed investor, uint256 Id, uint256 amount);
 
-    function registerAnimal(
-        string memory _animalName,
-        string memory _breed,
-        uint256 _totalAmountSharesMinted
-    ) external returns (uint256);
+    function registerAnimal(string memory _animalName, string memory _breed, uint256 _totalAmountSharesMinted)
+        external
+        returns (uint256);
 
     function createListing(
         uint256 _livestockId,

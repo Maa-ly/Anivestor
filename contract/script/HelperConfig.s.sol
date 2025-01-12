@@ -10,12 +10,12 @@ contract HelperConfig is Script {
     NetworkConfig public activeNetworkConfig;
 
     struct NetworkConfig {
-      //   address wethUsdPriceFeed;
+        //   address wethUsdPriceFeed;
         address wbtcUsdPriceFeed;
-      //   address usdtPriceFeed;
+        //   address usdtPriceFeed;
         uint256 deployerKey;
-      //   string rpcUrl;
     }
+    //   string rpcUrl;
 
     uint256 public DEFAULT_ANVIL_PRIVATE_KEY = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
 
@@ -33,8 +33,8 @@ contract HelperConfig is Script {
             wbtcUsdPriceFeed: 0xb68B780bae5ec684337D78a94fC306a076cE03f9,
             // usdtPriceFeed: 0x2558f030239B950C3e27194A3c58272a05237c15,
             deployerKey: vm.envUint("PRIVATE_KEY")
-            // rpcUrl: "https://rpc.sepolia.org"
         });
+        // rpcUrl: "https://rpc.sepolia.org"
     }
 
     function getCitreaConfig() public view returns (NetworkConfig memory citreaNetworkConfig) {
@@ -43,7 +43,7 @@ contract HelperConfig is Script {
             wbtcUsdPriceFeed: 0xb68B780bae5ec684337D78a94fC306a076cE03f9,
             // usdtPriceFeed: 0x2558f030239B950C3e27194A3c58272a05237c15,
             deployerKey: vm.envUint("PRIVATE_KEY")
-            // rpcUrl: "https://rpc.testnet.citrea.xyz/"
         });
+        // rpcUrl: "https://rpc.testnet.citrea.xyz/"
     }
 }

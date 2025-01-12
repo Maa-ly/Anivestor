@@ -14,11 +14,14 @@ import {IMarketPlace} from "./interfaces/IMarketplace.sol";
  *@notice this contains functions to borrow and repay a loan
  */
 contract Borrow {
+<<<<<<< HEAD
 
      /*//////////////////////////////////////////////////////////////
                             STATE VARIABLES
     //////////////////////////////////////////////////////////////*/
 
+=======
+>>>>>>> b7b83c9798ecf5ccc377fe91c9a1ea89fcb0a6ae
     IChainlinkAggregator internal s_wbtcUsdAggregator; // wbtc
 
     uint256 public constant USDT_DECIMAL = 1e6;
@@ -131,8 +134,8 @@ contract Borrow {
         usdtToken = IERC20(_tokenAddress);
         collateralToken = IERC20(wbtc);
 
-      //   s_usdtUsdAggregator = IChainlinkAggregator(usdtUsdAggregatorAddress);
-      //   s_wethEthUsdAggregator = IChainlinkAggregator(wethEthUsdAggregatorAddress);
+        //   s_usdtUsdAggregator = IChainlinkAggregator(usdtUsdAggregatorAddress);
+        //   s_wethEthUsdAggregator = IChainlinkAggregator(wethEthUsdAggregatorAddress);
         s_wbtcUsdAggregator = IChainlinkAggregator(wbtcUsdAggregatorAddress);
     }
  
@@ -247,7 +250,6 @@ contract Borrow {
     function repayLoan(uint256 _collateralIndex, uint256 _livestockId, uint256 _amount) external {
         CollateralStruct storage collateralInfo = collateral[_collateralIndex];
         require(collateralInfo.farmer == msg.sender, "COLLATERAL__Not_The_Owner");
-
 
         require(collateralInfo.borrowed > 0 && _amount <= collateralInfo.borrowed, "COLLATERAL__AMOUNT_NOT_IN_RANGE");
         uint256 livestockAmountBorrowed = livestockBorrowed[_livestockId].amountBorrowed;

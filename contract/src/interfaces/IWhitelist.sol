@@ -29,6 +29,6 @@ interface IWhiteList {
     function owner() external view returns (address);
 
     function publicWhitelist(uint256 _livestockId) external view returns (WhiteListStruct memory);
-    
+
     function privateWhitelist(uint256 _livestockId) external view returns (WhiteListStruct memory);
 }

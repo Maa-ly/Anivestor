@@ -43,12 +43,17 @@ contract WhiteList {
         _;
     }
 
+<<<<<<< HEAD
 
      /*//////////////////////////////////////////////////////////////
                            FUNCTIONS
     //////////////////////////////////////////////////////////////*/
     constructor(address _owner) {
         owner = _owner;
+=======
+    constructor() {
+        owner = msg.sender;
+>>>>>>> b7b83c9798ecf5ccc377fe91c9a1ea89fcb0a6ae
     }
 
     /**
@@ -59,7 +64,10 @@ contract WhiteList {
  */
 
     function createPublicWhitelist(uint256 _livestockId, address _owner) external {
-        publicWhitelist[_livestockId].owner = _owner;
+        publicWhitelist[_livestockId] = WhiteListStruct({
+         owner: _owner,
+         contacts: new address[](0)
+        });
     }
 
     /**
@@ -69,7 +77,10 @@ contract WhiteList {
  * @param _owner The address that will be the owner of the whitelist for this livestock.
  */
     function createPrivateWhitelist(uint256 _livestockId, address _owner) external {
-        privateWhitelist[_livestockId].owner = _owner;
+        privateWhitelist[_livestockId] = WhiteListStruct({
+         owner: _owner,
+         contacts: new address[](0)
+        });
     }
 
 

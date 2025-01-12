@@ -51,6 +51,7 @@ contract FarmerRegistration is Ownable {
      *@notice string memory documentHash e.g documents proving farm ownership
      */
 
+<<<<<<< HEAD
     function registerFarmer(string memory name, string memory documentHash) external {
         require(farmer[msg.sender].farmerAddress == address(0), "FarmerRegistration__Farmer_Already_Registered");
         farmer[msg.sender] =
@@ -63,15 +64,29 @@ contract FarmerRegistration is Ownable {
      *@notice address farmerAddress
      */
     function verifyFarmer(address farmerAddress) external onlyOwner {
+=======
+    function verifyFarmer(address farmerAddress) external 
+    //  onlyOwner
+    {
+>>>>>>> b7b83c9798ecf5ccc377fe91c9a1ea89fcb0a6ae
         require(farmer[farmerAddress].farmerAddress != address(0), "FarmerRegistration__Farmer_Hasnt_registered");
         // oracle verification
         farmer[farmerAddress].verified = true;
         emit FarmerVerified(farmerAddress);
     }
 
+<<<<<<< HEAD
       /**@notice this function is used users/anyone to check if a farmer is verified
      *@notice address farmerAddress
      */
+=======
+    function registerFarmer(string memory name, string memory documentHash) external {
+        require(farmer[msg.sender].farmerAddress == address(0), "FarmerRegistration__Farmer_Already_Registered");
+        farmer[msg.sender] = Farmer({farmerAddress: msg.sender, name: name, documentHash: documentHash, verified: false});
+        this.verifyFarmer(msg.sender);
+        emit FarmerRegistered(msg.sender, name);
+    }
+>>>>>>> b7b83c9798ecf5ccc377fe91c9a1ea89fcb0a6ae
 
     function isVerified(address farmerAddress) external view returns (bool) {
         return farmer[farmerAddress].verified;

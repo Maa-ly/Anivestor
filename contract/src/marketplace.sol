@@ -20,15 +20,18 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
  * @notice uses usdc(listing info and pricing) and weth(collateral is deposited)
  */
 contract MarketPlace is ERC1155, IERC1155Receiver {
+<<<<<<< HEAD
 
      ////////////////////////////////////////////////////////
     /////////// STATE VARIABLES ////////////////////////////
     //////////////////////////////////////////////////////
 
+=======
+>>>>>>> b7b83c9798ecf5ccc377fe91c9a1ea89fcb0a6ae
     CollateralStruct[] public collateral;
-    Animal[] public liveStock; /* */
+    Animal[] public liveStock; 
 
-    uint256 livestockId = 1; // everything is over.....0 nothing 0 id means nada
+    uint256 livestockId; // everything is over.....0 nothing 0 id means nada
     IERC20 public usdtToken; // base Token for transacting on our platform - usdc
     address public usdtTokenAddress; // USDT token address
 
@@ -156,9 +159,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         address _whiteListAddress,
         address _farmerRegistrationAddress,
         address _usdtTokenAddress
-    )
-        ERC1155(URI)
-    {
+    ) ERC1155(URI) {
         whiteList = IWhiteList(_whiteListAddress);
         farmer = IFarmerRegistration(_farmerRegistrationAddress);
         usdtToken = IERC20(_usdtTokenAddress);
@@ -183,7 +184,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         returns (uint256)
     {
         uint256 _livestockId = livestockId;
-        liveStock[_livestockId] = Animal({
+        liveStock.push(Animal({
             farmer: msg.sender,
             animalName: _animalName,
             breed: _breed,
@@ -196,7 +197,7 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
             listingTime: 0,
             listingState: State.UNLISTED,
             whiteListType: WhiteListType.PUBLIC
-        });
+        }));
         livestockId++;
         _mint(msg.sender, _livestockId, _totalAmountSharesMinted, "");
         emit AnimalRegistered(_livestockId, msg.sender, _animalName, _totalAmountSharesMinted);
@@ -246,8 +247,8 @@ contract MarketPlace is ERC1155, IERC1155Receiver {
         whiteList.createPublicWhitelist(_livestockId, msg.sender);
         whiteList.createPrivateWhitelist(_livestockId, msg.sender);
 
-        setApprovalForAll(address(this), true);
-        _safeTransferFrom(msg.sender, address(this), _livestockId, animal.totalAmountSharesMinted, "");
+      //   setApprovalForAll(address(this), true);
+      //   _safeTransferFrom(msg.sender, address(this), _livestockId, animal.totalAmountSharesMinted, "");
         emit ListCreated(_livestockId, msg.sender, _lockPeriod, _whiteListType);
     }
 
