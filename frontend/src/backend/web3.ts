@@ -32,13 +32,14 @@ let whitelistContract: any = null;
 const farmerContractAddress: any = "0xa6dDCBE4ea5B8fD62A738595b4ba2D47Df824eFB";
 const borrowContractAddress: any = "0xf453B5B73828B54Bf60E4FBFa87a99f0E799221E";
 const marketplaceContractAddress: any = "0xd04b419f8b82C4d47a3b410FF242e89953f9Ac2a";
+const whitelistContractAddress: string = "0x131235209d0948E4C9DC72d48A1E5d64eea43bb5";
 if (typeof window !== "undefined" && typeof window.ethereum !== "undefined") {
    //
    web3 = new Web3(window.ethereum);
    farmerContract = new web3.eth.Contract(farmerAbi, farmerContractAddress)
    borrowContract = new web3.eth.Contract(borrowAbi, borrowContractAddress)
    marketplaceContract = new web3.eth.Contract(marketplaceAbi, marketplaceContractAddress)
-   whitelistContract = new web3.eth.Contract(whitelistAbi, whitelistContract)
+   whitelistContract = new web3.eth.Contract(whitelistAbi, whitelistContractAddress)
    // usdcContract = new web3.eth.Contract(usdcAbi, "0x036CbD53842c5426634e7929541eC2318f3dCF7e")
 } else {
    //
@@ -48,7 +49,7 @@ if (typeof window !== "undefined" && typeof window.ethereum !== "undefined") {
    farmerContract = new web3.eth.Contract(farmerAbi, farmerContractAddress)
    borrowContract = new web3.eth.Contract(borrowAbi, borrowContractAddress)
    marketplaceContract = new web3.eth.Contract(marketplaceAbi, marketplaceContractAddress)
-   whitelistContract = new web3.eth.Contract(whitelistAbi, whitelistContract)
+   whitelistContract = new web3.eth.Contract(whitelistAbi, whitelistContractAddress)
 
 }
 

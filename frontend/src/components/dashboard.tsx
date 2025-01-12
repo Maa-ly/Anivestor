@@ -6,6 +6,7 @@ import Image from 'next/image'
 import infantCattleImage from "../../public/images/infantCattle.png"
 import CreateListing from './popup/createListing'
 import RegisterLivestock from './popup/registerLivestock'
+import DepositCollateral from './popup/depositCollateral'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Dashboard = ({ account }: { account: any }) => {
@@ -60,6 +61,10 @@ const Dashboard = ({ account }: { account: any }) => {
                <div className="flex gap-2 mb-2">
                   <CreateListing />
                   <RegisterLivestock />
+               </div>
+               <div className="flex gap-2 mb-2">
+                  {/* <CreateListing /> */}
+                  <DepositCollateral />
                </div>
                <Button className="w-full bg-red-600 rounded-md text-white/70 font-semibold hover:bg-red-600/70">Delete Account</Button>
                <div className='w-full h-[10.3rem] bg-gray-300 mt-2 rounded-xl flex flex-col gap-1 p-2 overflow-y-scroll'>

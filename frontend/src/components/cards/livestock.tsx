@@ -54,13 +54,16 @@ const LivestockCard = ({ animal, index }: { animal: Animal, index: number }) => 
    const handlePurchaseShares = async () => {
       try {
          switchChain(5115)
-         let res = await whitelistContract.methods.addToPublicWhiteList(value.livestockId, account.address);
-         let result = await marketplaceContract.methods.invest(value.livestockId, value.pay).send({ from: account.address });
-         result = {
-            ...result,
-            success: "Share Bought Successful"
+         const inPublicWhitelist = await whitelistContract.methods.isPublicWhiteList(value.livestockId, account.address).send({ from: account.address });
+         if (inPublicWhitelist) {
+            let res = await whitelistContract.methods.addToPublicWhiteList(value.livestockId, account.address).send({ from: account.address });
+            let result = await marketplaceContract.methods.invest(value.livestockId, value.pay).send({ from: account.address });
+            result = {
+               ...result,
+               success: "Share Bought Successful"
+            }
+            return result
          }
-         return result
       } catch (error) {
          console.log(error)
          throw new Error("There was a problem with the request");
