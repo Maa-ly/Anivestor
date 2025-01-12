@@ -53,7 +53,11 @@ Anivestor enables a decentralized marketplace where people can invest in livesto
 
 ## **Sponsors**
 - **IEXEC**
+- data protector
+- web3 mail
+  
 - **CITREA**
+- deploying the contract and interactions 
 
 ---
 
