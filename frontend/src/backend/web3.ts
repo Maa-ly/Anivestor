@@ -5,14 +5,20 @@ import marketplaceAbi from "./contract/Marketplace.json"
 import whitelistAbi from "./contract/whitelist.json"
 
 
+// Return ==
+// 0: contract FarmerRegistration 0xBFDC5fBd312b42FE3D1D738d4493E1C45b3cC4F8
+// 1: contract WhiteListDeployer 0x99A24893033B99fA29eF575F2236351ba31863c8
+// 2: contract MarketPlace 0xA32C3b7Bc0D56815c330e770294dDDE11E821C52
+// 3: contract Borrow 0xfb0be8721F277746D853CC95e9b66F074C756756
+// 4: contract HelperConfig 0x5aAdFB43eF8dAF45DD80F4676345b7676f1D70e3
 let web3 = null;
 let farmerContract: any = null;
 let borrowContract: any = null;
 let marketplaceContract: any = null;
 let whitelistContract: any = null;
-const farmerContractAddress: any = "0xF6548fD522dcb12d8AC126dD867A6859fCCe4507";
-const borrowContractAddress: any = null;
-const marketplaceContractAddress: any = "0x7FEC6e2A596b8227ABc04967B7D1F8D8EDD244f7";
+const farmerContractAddress: any = "0xBFDC5fBd312b42FE3D1D738d4493E1C45b3cC4F8";
+const borrowContractAddress: any = "0xfb0be8721F277746D853CC95e9b66F074C756756";
+const marketplaceContractAddress: any = "0xA32C3b7Bc0D56815c330e770294dDDE11E821C52";
 if (typeof window !== "undefined" && typeof window.ethereum !== "undefined") {
    //
    web3 = new Web3(window.ethereum);

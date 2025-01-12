@@ -58,14 +58,6 @@ const RegisterFarmer = () => {
    const handleClick = async () => {
       try {
          await switchChain(134)
-         const sendEmail = await web3mail.sendEmail({
-            protectedData: "0xD8395a9Bb94Cb3cc9Df01eFC6C462DfB19Bf62ac",
-            emailSubject: 'Farmer Registration',
-            emailContent: `Farmer Documents sent for approval`,
-            workerpoolAddressOrEns: 'prod-v8-bellecour.main.pools.iexec.eth',
-            workerpoolMaxPrice: 4200000,
-         });
-         console.log(sendEmail)
          const res = await protectData()
          console.log(res.address)
          const grantedAccess = await dataProtectorCore.grantAccess({
@@ -75,6 +67,15 @@ const RegisterFarmer = () => {
          });
 
          console.log(grantedAccess)
+         // const sendEmail = await web3mail.sendEmail({
+         //    // protectedData: "0xD8395a9Bb94Cb3cc9Df01eFC6C462DfB19Bf62ac",
+         //    protectedData: res.address,
+         //    emailSubject: 'Farmer Registration',
+         //    emailContent: `Farmer Documents sent for approval`,
+         //    workerpoolAddressOrEns: 'prod-v8-bellecour.main.pools.iexec.eth',
+         //    workerpoolMaxPrice: 4200000,
+         // });
+         // console.log(sendEmail)
          await switchChain(5115)
          let result = await farmerContract.methods.registerFarmer(value.name, res?.address).send({ from: account.address });
          result = {

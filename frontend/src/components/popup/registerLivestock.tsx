@@ -18,10 +18,12 @@ const RegisterLivestock = () => {
    const handleChange = (e: any) => {
       setValue((value: any) => ({ ...value, [e.target.name]: e.target.value }))
    }
+   console.log(value)
 
    const handleClick = async () => {
       try {
          switchChain(5115)
+         // let re = await marketplaceContract.methods.livestockId.call()
          let result = await marketplaceContract.methods.registerAnimal(value.animalName, value.breed, value.mintAmount).send({ from: account.address });
          result = {
             ...result,
