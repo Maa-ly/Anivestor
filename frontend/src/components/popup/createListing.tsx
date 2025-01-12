@@ -52,7 +52,7 @@ const CreateListing = () => {
    const handleClick = async () => {
       try {
          switchChain(5115)
-         let result = await marketplaceContract.methods.createListing(value.livestockId, value.pricePerShare, value.profitPerShare, 172800, value.periodProfit, value.listingType).send({ from: account.address });
+         let result = await marketplaceContract.methods.createListing(value.livestockId, value.pricePerShare, value.profitPerShare, diffInSeconds, value.periodProfit, value.listingType).send({ from: account.address });
          result = {
             ...result,
             success: "Livestock Registration Successful"

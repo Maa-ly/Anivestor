@@ -21,14 +21,8 @@ const Marketplace = () => {
 
          <section className='w-full h-full gap-2 grid customgrid mt-10 px-4 xl:px-[10rem]'>
             {listings.map((element, index) => (
-               <LivestockCard key={index} animal={element} />
+               <LivestockCard key={index} index={index} animal={element} />
             ))}
-
-            {/* <LivestockCard />
-            <LivestockCard />
-            <LivestockCard />
-            <LivestockCard />
-            <LivestockCard /> */}
 
          </section>
 

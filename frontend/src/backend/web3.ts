@@ -18,14 +18,20 @@ import whitelistAbi from "./contract/whitelist.json"
 // 2: contract MarketPlace 0xdE97dF6E101E17ebbC901444AB8AA1e6fFE9F18B
 // 3: contract Borrow 0x02AA0EAcb0Fab7d9864E1ddC2f3800d40DC646d6
 // 4: contract HelperConfig 0x5aAdFB43eF8dAF45DD80F4676345b7676f1D70e3
+// == Return ==
+// 0: contract FarmerRegistration 0xa6dDCBE4ea5B8fD62A738595b4ba2D47Df824eFB
+// 1: contract WhiteList 0x131235209d0948E4C9DC72d48A1E5d64eea43bb5
+// 2: contract MarketPlace 0xd04b419f8b82C4d47a3b410FF242e89953f9Ac2a
+// 3: contract Borrow 0xf453B5B73828B54Bf60E4FBFa87a99f0E799221E
+// 4: contract HelperConfig 0x5aAdFB43eF8dAF45DD80F4676345b7676f1D70e3
 let web3 = null;
 let farmerContract: any = null;
 let borrowContract: any = null;
 let marketplaceContract: any = null;
 let whitelistContract: any = null;
-const farmerContractAddress: any = "0xf5b9319fdaa178B24852D2A58697581278F2B14D";
-const borrowContractAddress: any = "0x02AA0EAcb0Fab7d9864E1ddC2f3800d40DC646d6";
-const marketplaceContractAddress: any = "0xdE97dF6E101E17ebbC901444AB8AA1e6fFE9F18B";
+const farmerContractAddress: any = "0xa6dDCBE4ea5B8fD62A738595b4ba2D47Df824eFB";
+const borrowContractAddress: any = "0xf453B5B73828B54Bf60E4FBFa87a99f0E799221E";
+const marketplaceContractAddress: any = "0xd04b419f8b82C4d47a3b410FF242e89953f9Ac2a";
 if (typeof window !== "undefined" && typeof window.ethereum !== "undefined") {
    //
    web3 = new Web3(window.ethereum);

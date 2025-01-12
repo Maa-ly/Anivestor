@@ -1,5 +1,6 @@
+"use client"
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
-import React from 'react'
+import React, { useState } from 'react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
@@ -17,6 +18,9 @@ import {
    MenubarSubTrigger,
    MenubarTrigger,
 } from "../ui/menubar"
+import { marketplaceContract, switchChain, whitelistContract } from '@/backend/web3'
+import { useAccount } from 'wagmi'
+import CustomBtn from './customBtn'
 
 interface Animal {
    animalName: string; // Name of the animal
@@ -33,9 +37,34 @@ interface Animal {
    whiteListType: bigint; // Type of whitelist (e.g., public, private)
 }
 
-const LivestockCard = ({ animal }: { animal: Animal }) => {
+const LivestockCard = ({ animal, index }: { animal: Animal, index: number }) => {
+   const account = useAccount()
+   const [value, setValue] = useState({
+      livestockId: index,
+      shares: 0,
+      pay: 0,
+   })
    const truncate = (text: string) => {
       return text.slice(0, 8) + "..." + text.slice(-4);
+   }
+   const handleChange = (e: any) => {
+      setValue((value: any) => ({ ...value, [e.target.name]: e.target.value }))
+   }
+   // console.log(key)
+   const handlePurchaseShares = async () => {
+      try {
+         switchChain(5115)
+         let res = await whitelistContract.methods.addToPublicWhiteList(value.livestockId, account.address);
+         let result = await marketplaceContract.methods.invest(value.livestockId, value.pay).send({ from: account.address });
+         result = {
+            ...result,
+            success: "Share Bought Successful"
+         }
+         return result
+      } catch (error) {
+         console.log(error)
+         throw new Error("There was a problem with the request");
+      }
    }
    return (
       <div className='flex relative flex-col bg-slate-300 text-black rounded-xl overflow-hidden shadow-md shrink-0'>
@@ -83,7 +112,9 @@ const LivestockCard = ({ animal }: { animal: Animal }) => {
             </Menubar>
          </div>
          <div className='p-2 px-4'>
-            <h3 className='font-semibold'>{animal.animalName} <span className='text-[12px] text-green-500'>{animal.listingState}</span></h3>
+            <h3 className='font-semibold'>{animal.animalName} <span className='text-[12px] text-green-500'>{animal.listingState}</span>
+               <span className='text-[12px] text-green-500'>{animal.whiteListType}</span>
+            </h3>
             <div className='flex justify-between pb-1'>
                <div className='w-1/2'>
                   <h3 className='text-[12px] text-gray-800'>Farm name</h3>
@@ -131,17 +162,19 @@ const LivestockCard = ({ animal }: { animal: Animal }) => {
                   </div>
                   <div className="grid gap-2">
                      <div className="grid grid-cols-3 items-center gap-4">
-                        <Label htmlFor="share">Shares</Label>
+                        <Label htmlFor="share">Pay $</Label>
                         <Input
-                           id="share"
+                           id="pay"
                            defaultValue="1"
                            className="col-span-2 h-8"
+                           onChange={(e) => handleChange(e)}
                         />
                      </div>
                      <div className="grid grid-cols-3 items-center gap-4">
-                        <Label htmlFor="pay">Pay $</Label>
+                        <Label htmlFor="pay">Share</Label>
                         <Input
-                           id="amountToPay"
+                           name='shares'
+                           id="shares"
                            defaultValue="none"
                            className="col-span-2 h-8"
                            disabled
@@ -151,7 +184,8 @@ const LivestockCard = ({ animal }: { animal: Animal }) => {
                   </div>
 
                </div>
-               <Button className='mx-auto w-full my-2'>Purchase</Button>
+               {/* <Button className='mx-auto w-full my-2'>Purchase</Button> */}
+               <CustomBtn handleClick={handlePurchaseShares} />
             </PopoverContent>
          </Popover>
 
