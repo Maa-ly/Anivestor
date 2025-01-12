@@ -51,7 +51,8 @@ Anivestor enables a decentralized marketplace where people can invest in livesto
 
 
 
-![diagram-export-12-01-2025-2_41_54-pm](https://github.com/user-attachments/assets/7e7d9602-9409-49a6-96d1-9ec144afb6f2)
+
+![diagram-export-12-01-2025-2_41_54-pm](https://github.com/user-attachments/assets/20bffd8d-09a9-4d4e-8c56-75f1785a141d)
 
 
 
