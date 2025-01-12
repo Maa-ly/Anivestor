@@ -25,7 +25,7 @@ contract WhiteListDeployer is Ownable {
 
     function deployWhiteList() external onlyOwner isverified {
         require(farmerToWhitelist[msg.sender] == address(0), "WhiteListDeployer___Farmer_Already_Has_Whitelist");
-        list = new WhiteList(msg.sender); // Farmer becomes the owner of their WhiteList
+        list = new WhiteList(); // Farmer becomes the owner of their WhiteList
         farmerToWhitelist[msg.sender] = address(list);
     }
 

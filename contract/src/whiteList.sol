@@ -21,8 +21,8 @@ contract WhiteList {
         _;
     }
 
-    constructor(address _owner) {
-        owner = _owner;
+    constructor() {
+        owner = msg.sender;
     }
 
     function createPublicWhitelist(uint256 _livestockId, address _owner) external {
