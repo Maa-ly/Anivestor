@@ -54,7 +54,7 @@ Anivestor enables a decentralized marketplace where people can invest in livesto
 Clone the repository and build the contracts:
 
 ```bash
-git clone https://github.com/Maa-ly/Anivestor.git
+git clone https://github.com/Maa-ly/Anivestor/tree/master
 cd Anivestor/contract
 forge build
 ```
