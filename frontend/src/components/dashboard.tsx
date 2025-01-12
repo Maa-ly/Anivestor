@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from './ui/dialog'
 import { Button } from './ui/button'
 import Image from 'next/image'
@@ -7,12 +7,19 @@ import infantCattleImage from "../../public/images/infantCattle.png"
 import CreateListing from './popup/createListing'
 import RegisterLivestock from './popup/registerLivestock'
 import DepositCollateral from './popup/depositCollateral'
+import { borrowContract } from '@/backend/web3'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Dashboard = ({ account }: { account: any }) => {
    const truncate = (address: string) => {
       return address.slice(0, 6) + "..." + address.slice(-6)
    }
+   useEffect(() => {
+      async function fetch() {
+         const collateralValue = await borrowContract.methods.getFarmerBorrowedAmount(0);
+      }
+      fetch()
+   })
    return (
 
       <Dialog>
