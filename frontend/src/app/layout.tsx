@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar";
 import RainbowProvider from "@/backend/rainbowkit";
-
+import { Toaster } from "../components/ui/toaster"
 const geistSans = Geist({
    variable: "--font-geist-sans",
    subsets: ["latin"],
@@ -29,10 +29,15 @@ export default function RootLayout({
          <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0B0A09] text-white`}
          >
-            <RainbowProvider>
-               <Navbar />
-               {children}
-            </RainbowProvider>
+            <main>
+               <RainbowProvider>
+                  <div>
+                     <Navbar />
+                     {children}
+                  </div>
+               </RainbowProvider>
+               <Toaster />
+            </main>
          </body>
       </html>
    );

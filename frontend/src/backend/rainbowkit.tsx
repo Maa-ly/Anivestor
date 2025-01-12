@@ -5,13 +5,6 @@ import {
    RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
-// import {
-//    mainnet,
-//    polygon,
-//    optimism,
-//    arbitrum,
-//    base
-// } from 'wagmi/chains';
 import {
    QueryClientProvider,
    QueryClient,
@@ -35,7 +28,7 @@ const citreaTestnet = {
       default
          : {
          http
-            : ['https://rpc.testnet.citrea.xyx/']
+            : ['http://rpc.testnet.citrea.xyx/']
       },
    },
    blockExplorers
@@ -44,38 +37,49 @@ const citreaTestnet = {
          : {
          name
             : 'explorer', url
-            : 'https://explorer.testnet.citrea.xyz/'
+            : 'http://explorer.testnet.citrea.xyz/'
       },
    },
-   // contracts
-   //    : {
-   //       ensRegistry
-   //          : {
-   //          address
-   //             : '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
-   //       },
-   //       ensUniversalResolver
-   //          : {
-   //          address
-   //             : '0xE4Acdd618deED4e6d2f03b9bf62dc6118FC9A4da',
-   //          blockCreated
-   //             : 16773775,
-   //       },
-   //       multicall3
-   //          : {
-   //          address
-   //             : '0xca11bde05977b3631167028862be2a173976ca11',
-   //          blockCreated
-   //             : 14353601,
-   //       },
-   //    }
+} as const satisfies Chain;
+const iExecSideChain = {
+   id
+      : 134,
+   name
+      : 'iExec Sidechain',
+   nativeCurrency
+      : {
+      name
+         : 'xRLC', symbol
+         : 'xRLC', decimals
+         : 18
+   },
+   rpcUrls
+      : {
+      default
+         : {
+         http
+            : ['https://bellecour.iex.ec/']
+      },
+   },
+   blockExplorers
+      : {
+      default
+         : {
+         name
+            : 'explorer', url
+            : 'https://blockscout.bellecour.iex.ec/'
+      },
+   },
 } as const satisfies Chain;
 
 // import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 const config = getDefaultConfig({
    appName: 'Anivestor',
    projectId: '8cb5f3fe4d21366ebdb7819b637be12e',
-   chains: [citreaTestnet],
+   chains: [
+      citreaTestnet,
+      iExecSideChain
+   ],
    ssr: true, // If your dApp uses server side rendering (SSR)
 });
 
@@ -93,3 +97,4 @@ const RainbowProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default RainbowProvider;
+export { citreaTestnet }
