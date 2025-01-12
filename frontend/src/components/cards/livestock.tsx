@@ -18,9 +18,24 @@ import {
    MenubarTrigger,
 } from "../ui/menubar"
 
-const LivestockCard = () => {
+interface Animal {
+   animalName: string; // Name of the animal
+   avaliableShare: bigint; // Number of available shares
+   breed: string; // Breed of the animal
+   farmer: string; // Address of the farmer
+   listingState: bigint; // Listing state as a numeric value
+   listingTime: bigint; // Timestamp for listing time
+   lockPeriod: bigint; // Lock period in some unit (e.g., seconds)
+   periodProfit: bigint; // Profit for the specified period
+   pricepershare: bigint; // Price per share
+   profitPerDay: bigint; // Daily profit
+   totalAmountSharesMinted: bigint; // Total shares minted
+   whiteListType: bigint; // Type of whitelist (e.g., public, private)
+}
+
+const LivestockCard = ({ animal }: { animal: Animal }) => {
    const truncate = (text: string) => {
-      return text.slice(0, 5) + "..." + text.slice(-3);
+      return text.slice(0, 8) + "..." + text.slice(-4);
    }
    return (
       <div className='flex relative flex-col bg-slate-300 text-black rounded-xl overflow-hidden shadow-md shrink-0'>
@@ -68,35 +83,35 @@ const LivestockCard = () => {
             </Menubar>
          </div>
          <div className='p-2 px-4'>
-            <h3 className='font-semibold'>Big On Animal <span className='text-[12px] text-green-500'>in-stock</span></h3>
+            <h3 className='font-semibold'>{animal.animalName} <span className='text-[12px] text-green-500'>{animal.listingState}</span></h3>
             <div className='flex justify-between pb-1'>
                <div className='w-1/2'>
                   <h3 className='text-[12px] text-gray-800'>Farm name</h3>
-                  <p className='text-sm'>Kaleel {truncate("0x4990299049sifj3990")}</p>
+                  <p className='text-sm'>{truncate(animal.farmer)}</p>
                </div>
                <div className='w-1/2 text-right'>
                   <h3 className='text-[12px] text-gray-800'>Breed</h3>
-                  <p className='text-sm'>Cat</p>
+                  <p className='text-sm'>{animal.breed}</p>
                </div>
             </div>
             <div className='flex justify-between pb-1'>
                <div className='w-1/2'>
                   <h3 className='text-[12px] text-gray-800'>Total Minted</h3>
-                  <p className='text-sm'>4000 Tk</p>
+                  <p className='text-sm'>{animal.totalAmountSharesMinted}</p>
                </div>
                <div className='w-1/2 text-right'>
                   <h3 className='text-[12px] text-gray-800'>Available Shares</h3>
-                  <p className='text-sm'>2000</p>
+                  <p className='text-sm'>{animal.avaliableShare}</p>
                </div>
             </div>
             <div className='flex justify-between pb-1'>
                <div className='w-1/2'>
                   <h3 className='text-[12px] text-gray-800'>Price per Share</h3>
-                  <p className='text-sm'>$20</p>
+                  <p className='text-sm'>${animal.pricepershare}</p>
                </div>
                <div className='w-1/2 text-right'>
                   <h3 className='text-[12px] text-gray-800'>Listing Time</h3>
-                  <p className='text-sm'>3 Days</p>
+                  <p className='text-sm'>{animal.listingTime}</p>
                </div>
             </div>
 

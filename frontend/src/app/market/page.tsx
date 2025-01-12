@@ -1,7 +1,18 @@
-import React from 'react'
+"use client"
+import React, { useEffect, useState } from 'react'
 import LivestockCard from '@/components/cards/livestock'
+import { marketplaceContract } from '@/backend/web3'
 
-const page = () => {
+const Marketplace = () => {
+   const [listings, setListings] = useState([]);
+
+   useEffect(() => {
+      async function fetch() {
+         const result = await marketplaceContract.methods.getListings().call();
+         setListings(result);
+      }
+      fetch()
+   })
 
 
    return (
@@ -9,12 +20,15 @@ const page = () => {
          {/* <FarmerRegistration /> */}
 
          <section className='w-full h-full gap-2 grid customgrid mt-10 px-4 xl:px-[10rem]'>
+            {listings.map((element, index) => (
+               <LivestockCard key={index} animal={element} />
+            ))}
+
+            {/* <LivestockCard />
             <LivestockCard />
             <LivestockCard />
             <LivestockCard />
-            <LivestockCard />
-            <LivestockCard />
-            <LivestockCard />
+            <LivestockCard /> */}
 
          </section>
 
@@ -22,4 +36,4 @@ const page = () => {
    )
 }
 
-export default page
+export default Marketplace
