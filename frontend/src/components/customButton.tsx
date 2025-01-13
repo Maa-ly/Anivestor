@@ -76,7 +76,7 @@ export const CustomButton = () => {
                                     )}
                                  </div>
                               )}
-                              {/* {chain.name} */}
+                              {chain.name}
                            </button>
                            <Dashboard account={account} />
                            {/* <button onClick={openAccountModal} type="button">
