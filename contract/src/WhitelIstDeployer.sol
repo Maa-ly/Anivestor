@@ -6,6 +6,9 @@ import {WhiteList} from "./whiteList.sol";
 import {FarmerRegistration} from "./FarmerRegistration.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
+
+/**@author Lydia && NOBEL(Kaleel)
+ */
 contract WhiteListDeployer is Ownable {
     address ownerr;
     WhiteList public list;

@@ -9,7 +9,19 @@ import {IFarmerRegistration} from "./interfaces/IFarmerRegistration.sol";
 import {IWhiteList} from "./interfaces/IWhitelist.sol";
 import {IMarketPlace} from "./interfaces/IMarketplace.sol";
 
+
+/**@author Kaleel && Lydia 
+ *@notice this contains functions to borrow and repay a loan
+ */
 contract Borrow {
+<<<<<<< HEAD
+
+     /*//////////////////////////////////////////////////////////////
+                            STATE VARIABLES
+    //////////////////////////////////////////////////////////////*/
+
+=======
+>>>>>>> b7b83c9798ecf5ccc377fe91c9a1ea89fcb0a6ae
     IChainlinkAggregator internal s_wbtcUsdAggregator; // wbtc
 
     uint256 public constant USDT_DECIMAL = 1e6;
@@ -41,6 +53,24 @@ contract Borrow {
     IFarmerRegistration public farmer;
     IWhiteList public whiteList;
 
+
+
+ /*//////////////////////////////////////////////////////////////
+                            EVENTS
+    //////////////////////////////////////////////////////////////*/
+
+    event Refunded(uint256 livestockId, address indexed investor, uint256 amount);
+    event Withdrawn(uint256 indexed livestockId, address indexed owner, uint256 amount);
+
+    event LoanRepaid(uint256 indexed _collateralIndex, uint256 indexed _livestockId, uint256 _amount);
+    event ReleaseCollateal(uint256 _collateralIndex, address farmer, uint256 valueOfCollateral);
+    event FundedProtocol(address indexed funder, uint256 amount);
+    event DepositedCollateral(address indexed farmer, uint256 amount, uint256 id);
+    event AmountBorrowed(address indexed farmer, uint256 amount);
+
+ /*//////////////////////////////////////////////////////////////
+                            Struct
+    //////////////////////////////////////////////////////////////*/
     struct CollateralStruct {
         // uint256 amount; //
         address farmer;
@@ -72,6 +102,27 @@ contract Borrow {
         PUBLIC,
         PRIVATE
     }
+    
+ /*//////////////////////////////////////////////////////////////
+                            MODIFIERS
+    //////////////////////////////////////////////////////////////*/
+
+
+    modifier onlyLivestockOwner(uint256 _livestockId) {
+        require(msg.sender == liveStock[_livestockId].farmer, "MARKETPLACE___NOT_OWNER_OF_ID");
+        _;
+    }
+
+    modifier isverified() {
+        require(farmer.isVerified(msg.sender), "WhiteListDeployer___Farmer_not_verified");
+        _;
+    }
+
+    
+ /*//////////////////////////////////////////////////////////////
+                            FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
 
     constructor(
         address _whiteListAddress,
@@ -89,26 +140,15 @@ contract Borrow {
         //   s_wethEthUsdAggregator = IChainlinkAggregator(wethEthUsdAggregatorAddress);
         s_wbtcUsdAggregator = IChainlinkAggregator(wbtcUsdAggregatorAddress);
     }
+ 
+ /*//////////////////////////////////////////////////////////////
+                          EXTERNAL FARMER  FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
 
-    modifier onlyLivestockOwner(uint256 _livestockId) {
-        require(msg.sender == liveStock[_livestockId].farmer, "MARKETPLACE___NOT_OWNER_OF_ID");
-        _;
-    }
-
-    modifier isverified() {
-        require(farmer.isVerified(msg.sender), "WhiteListDeployer___Farmer_not_verified");
-        _;
-    }
-
-    event Refunded(uint256 livestockId, address indexed investor, uint256 amount);
-    event Withdrawn(uint256 indexed livestockId, address indexed owner, uint256 amount);
-
-    event LoanRepaid(uint256 indexed _collateralIndex, uint256 indexed _livestockId, uint256 _amount);
-    event ReleaseCollateal(uint256 _collateralIndex, address farmer, uint256 valueOfCollateral);
-    event FundedProtocol(address indexed funder, uint256 amount);
-    event DepositedCollateral(address indexed farmer, uint256 amount, uint256 id);
-    event AmountBorrowed(address indexed farmer, uint256 amount);
-
+  /**This function allows a farmer to add collateral 
+   *@notice uint256 amount amount in wbtc the farmer is depositing
+   *@notice returns (uint256) the collateral index after depsoit is made
+   */
     function depositCollateral(uint256 amount) external isverified returns (uint256) {
         uint256 _collateralIndex = collateralIndex;
         require(amount > 0, "COLLATERAL__Amount_Must_Greater_Than_Zero");
@@ -141,7 +181,9 @@ contract Borrow {
         return _collateralIndex;
     }
 
-    /**
+    /**This function allows farmer to borrow against their collateral, farmer cannot borrow more than their collateral value
+     *@notice uint256  _collateralIndex
+     *@notice uint256 borrowAmount amount farmer wants to borrow
      * @notice borrow amount is allocated to the famer addresss , after you deposit you get id......
      */
     function borrow( /*uint256 _livestockId,*/ uint256 _collateralIndex, uint256 borrowAmount) external {
@@ -162,7 +204,11 @@ contract Borrow {
     }
 
     //use funds for listing
-
+/**@notice This function allows farmer to allocate borrowed money to a specific livestockId to help pay for periodprofit
+*@notice only callable by a verified farmer who owns the livestockId
+ * @notice uint256 _livestockId  the livestockId for funds allocation
+* @notice uint256 _collateralIndex index of the collateral
+ */
     function allocateFundsToListing(uint256 _livestockId, uint256 _collateralIndex /*uint256 _amount*/ )
         external
         onlyLivestockOwner(_livestockId)
@@ -182,6 +228,9 @@ contract Borrow {
         balances[msg.sender] -= animal.periodProfit;
     }
 
+    /**@notice this function is used by the farmer to get their collateral back. this function can only succeed when the dept is repaid
+     *@notice uint256 _collateralIndex index of the collateral to release
+     */
     function releaseCollateral(uint256 _collateralIndex) external {
         CollateralStruct memory collateralInfo = collateral[_collateralIndex];
         require(collateralInfo.farmer == msg.sender, "COLLATERAL__NOT_OWNER");
@@ -194,6 +243,12 @@ contract Borrow {
         emit ReleaseCollateal(_collateralIndex, msg.sender, collateralInfo.valueOfCollateral);
     }
 
+
+    /** @notice this function is used by farmer to repay loan, alllows farmer to repay in bits
+     *@notice uint256 _collateralIndex index of the collateral to repay loan 
+     *@notice uint256 _livestockId livestock id funds where allocated to
+     *@notice uint256 _amount amount you want to repay
+     */
     function repayLoan(uint256 _collateralIndex, uint256 _livestockId, uint256 _amount) external {
         CollateralStruct storage collateralInfo = collateral[_collateralIndex];
         require(collateralInfo.farmer == msg.sender, "COLLATERAL__Not_The_Owner");
@@ -211,6 +266,9 @@ contract Borrow {
         emit LoanRepaid(_collateralIndex, _livestockId, _amount);
     }
 
+    /**@notice this function is callable by only the livestock owner to take out listing funds
+     *@notice uint256 _livestockId Id of the livestock to withdraw funds from
+     */
     function withdrawListingFunds(uint256 _livestockId) external onlyLivestockOwner(_livestockId) {
         //   Animal storage animal = liveStock[_livestockId];
         IMarketPlace.Animal memory animal = marketplace.getListingDetails(_livestockId);
@@ -235,11 +293,18 @@ contract Borrow {
         emit Withdrawn(_livestockId, msg.sender, withdrawableAmount);
     }
 
+    /**@notice this function serves as a `fund me` a donation to the anivestor protocol
+     *@notice uint256 _amount amount in usdt to donate
+     */
     function fundProtocol(uint256 _amount) external {
         require(_amount > 0, "MARKETPLACE__AMOUNT_TOO_SMALL");
         //   collateralToken.transferFrom(msg.sender, address(this), _amountInUsd);
         usdtToken.transferFrom(msg.sender, address(this), _amount);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                          GETTER  FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
 
     function getFarmerBorrowedAmount(uint256 _collateralIndex) external view returns (uint256) {
         CollateralStruct memory _collateral = collateral[_collateralIndex];
